@@ -26,7 +26,13 @@ Does not currently compile anything, it simply creates an ELF binary with provid
 - Linux
 - Windows
 
-# ELF Structure
+# Resources
+[Wiki: ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
+
+[Wiki: DLL](https://en.wikipedia.org/wiki/Dynamic-link_library)
+
+[Wiki: EXE](https://en.wikipedia.org/wiki/.exe)
+
 [Format Example](https://kevinboone.me/elfdemo.html)
 
 ![ELF Structure](https://kevinboone.me/img/elfdemo1.png)
