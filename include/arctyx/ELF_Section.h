@@ -17,10 +17,10 @@
 
 #define SECH_SIZE 64
 
-class ELF64_Section
+class ELF_Section
 {
 private:
-	friend class ELF64;
+	friend class ELF;
 
 	ehs::UInt_64 hashId;
 	ehs::Str_8 id;
@@ -37,17 +37,17 @@ private:
 	ehs::Serializer<ehs::UInt_64> data;
 
 public:
-	ELF64_Section();
+	ELF_Section();
 
-	ELF64_Section(ehs::Str_8 id, ehs::UInt_64 fileOffset, ehs::UInt_32 type, ehs::UInt_64 flags, ehs::UInt_64 vAddr, ehs::UInt_64 align);
+	ELF_Section(ehs::Str_8 id, ehs::UInt_64 fileOffset, ehs::UInt_32 type, ehs::UInt_64 flags, ehs::UInt_64 vAddr, ehs::UInt_64 align);
 
-	ELF64_Section(ELF64_Section&& sect) noexcept;
+	ELF_Section(ELF_Section&& sect) noexcept;
 
-	ELF64_Section(const ELF64_Section& sect);
+	ELF_Section(const ELF_Section& sect);
 
-	ELF64_Section& operator=(ELF64_Section&& sect) noexcept;
+	ELF_Section& operator=(ELF_Section&& sect) noexcept;
 
-	ELF64_Section& operator=(const ELF64_Section& sect);
+	ELF_Section& operator=(const ELF_Section& sect);
 
 	ehs::UInt_64 GetHashId() const;
 

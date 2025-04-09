@@ -1,24 +1,24 @@
-#include "ELF64_Program.h"
+#include "arctyx/ELF_Program.h"
 
-ELF64_Program::ELF64_Program()
+ELF_Program::ELF_Program()
 	: type(PRGH_TYPE_LOAD), flags(PRGH_FLAG_EXEC | PRGH_FLAG_READ), offset(0), vAddr(0), pAddr(0), fileSize(0),
 	adjustedMemSize(0), align(0x200000)
 {
 }
 
-ELF64_Program::ELF64_Program(ehs::UInt_32 type, ehs::UInt_32 flags, ehs::UInt_64 offset, ehs::UInt_64 address, ehs::UInt_64 size, ehs::UInt_64 adjustedMemSize, ehs::UInt_64 align)
+ELF_Program::ELF_Program(ehs::UInt_32 type, ehs::UInt_32 flags, ehs::UInt_64 offset, ehs::UInt_64 address, ehs::UInt_64 size, ehs::UInt_64 adjustedMemSize, ehs::UInt_64 align)
 	: type(type), flags(flags), offset(offset), vAddr(address), pAddr(address), fileSize(size),
 	adjustedMemSize(adjustedMemSize), align(align)
 {
 }
 
-ELF64_Program::ELF64_Program(ehs::Serializer<ehs::UInt_64>& data)
+ELF_Program::ELF_Program(ehs::Serializer<ehs::UInt_64>& data)
 	: type(PRGH_TYPE_LOAD), flags(PRGH_FLAG_EXEC | PRGH_FLAG_READ), offset(0), vAddr(0), pAddr(0), fileSize(0),
 	adjustedMemSize(0), align(0x200000)
 {
 }
 
-ELF64_Program::ELF64_Program(ELF64_Program&& program) noexcept
+ELF_Program::ELF_Program(ELF_Program&& program) noexcept
 	: type(program.type), flags(program.flags), offset(program.offset), vAddr(program.vAddr), pAddr(program.pAddr),
 	fileSize(program.fileSize), adjustedMemSize(program.adjustedMemSize), align(program.align)
 {
@@ -32,13 +32,13 @@ ELF64_Program::ELF64_Program(ELF64_Program&& program) noexcept
 	program.align = 0x200000;
 }
 
-ELF64_Program::ELF64_Program(const ELF64_Program& program)
+ELF_Program::ELF_Program(const ELF_Program& program)
 	: type(program.type), flags(program.flags), offset(program.offset), vAddr(program.vAddr), pAddr(program.pAddr),
 	fileSize(program.fileSize), adjustedMemSize(program.adjustedMemSize), align(program.align)
 {
 }
 
-ELF64_Program& ELF64_Program::operator=(ELF64_Program&& program) noexcept
+ELF_Program& ELF_Program::operator=(ELF_Program&& program) noexcept
 {
 	if (this == &program)
 		return *this;
@@ -64,7 +64,7 @@ ELF64_Program& ELF64_Program::operator=(ELF64_Program&& program) noexcept
 	return *this;
 }
 
-ELF64_Program& ELF64_Program::operator=(const ELF64_Program& program)
+ELF_Program& ELF_Program::operator=(const ELF_Program& program)
 {
 	if (this == &program)
 		return *this;
@@ -81,22 +81,22 @@ ELF64_Program& ELF64_Program::operator=(const ELF64_Program& program)
 	return *this;
 }
 
-ehs::UInt_32 ELF64_Program::GetType() const
+ehs::UInt_32 ELF_Program::GetType() const
 {
 	return type;
 }
 
-ehs::UInt_32 ELF64_Program::GetFlags() const
+ehs::UInt_32 ELF_Program::GetFlags() const
 {
 	return flags;
 }
 
-ehs::UInt_64 ELF64_Program::GetAlign() const
+ehs::UInt_64 ELF_Program::GetAlign() const
 {
 	return align;
 }
 
-void ELF64_Program::Serialize(ehs::Serializer<ehs::UInt_64>& inData) const
+void ELF_Program::Serialize(ehs::Serializer<ehs::UInt_64>& inData) const
 {
 	inData.Write(type);
 	inData.Write(flags);

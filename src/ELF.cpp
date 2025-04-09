@@ -1,62 +1,62 @@
-#include "ELF64.h"
+#include "arctyx/ELF.h"
 
-constexpr ehs::Char_8 Elf_Magic[] = "\x7F" "ELF";
-constexpr ehs::UInt_8 Elf_Magic_Size = sizeof(Elf_Magic) - 1;
-
-ELF64::ELF64()
-	: endianness(ELFH_END_LE), abi(ELFH_ABI_SYSTEMV), type(ELFH_TYPE_EXEC),
-	arch(ELFH_MARCH_AMD_X86_64), entryPoint(0)
+ELF::ELF()
+	: bitDepth(ELF_BIT_DEPTH_64), endianness(ELF_END_LE), abi(ELFH_ABI_SYSTEMV), type(ELFH_TYPE_EXEC),
+	arch(ELF_ARCH_X86_64), entryPoint(0)
 {
 	InitializeSections();
 }
 
-ELF64::ELF64(ehs::UInt_8 end, ehs::UInt_8 abi, ehs::UInt_16 type, ehs::UInt_16 arch)
-	: endianness(end), abi(abi), type(type), arch(arch), entryPoint(0)
+ELF::ELF(const ehs::UInt_8 &bitDepth, const ehs::UInt_8 &end, const ehs::UInt_8 &abi, const ehs::UInt_16 &type, const ehs::UInt_16 &arch)
+	: bitDepth(bitDepth), endianness(end), abi(abi), type(type), arch(arch), entryPoint(0)
 {
 	InitializeSections();
 }
 
-ELF64::ELF64(ehs::Serializer<ehs::UInt_64>& data)
+ELF::ELF(ehs::Serializer<ehs::UInt_64>& data)
 {
 }
 
-ELF64::ELF64(ELF64&& header) noexcept
-	: endianness(header.endianness), abi(header.abi), type(header.type), arch(header.arch),
-	entryPoint(header.entryPoint), programs((ehs::Vector<ELF64_Program, ehs::UInt_16>&&)header.programs),
-	sections((ehs::Vector<ELF64_Section, ehs::UInt_16>&&)header.sections)
+ELF::ELF(ELF&& header) noexcept
+	: bitDepth(header.bitDepth), endianness(header.endianness), abi(header.abi), type(header.type), arch(header.arch),
+	entryPoint(header.entryPoint), programs((ehs::Vector<ELF_Program, ehs::UInt_16>&&)header.programs),
+	sections((ehs::Vector<ELF_Section, ehs::UInt_16>&&)header.sections)
 {
-	header.endianness = ELFH_END_LE;
+	header.bitDepth = ELF_BIT_DEPTH_64;
+	header.endianness = ELF_END_LE;
 	header.abi = ELFH_ABI_SYSTEMV;
 	header.type = ELFH_TYPE_EXEC;
-	header.arch = ELFH_MARCH_AMD_X86_64;
+	header.arch = ELF_ARCH_X86_64;
 	header.entryPoint = 0;
 
 	header.InitializeSections();
 }
 
-ELF64::ELF64(const ELF64& header)
-	: endianness(header.endianness), abi(header.abi), type(header.type), arch(header.arch),
+ELF::ELF(const ELF& header)
+	: bitDepth(header.bitDepth), endianness(header.endianness), abi(header.abi), type(header.type), arch(header.arch),
 	entryPoint(header.entryPoint), programs(header.programs), sections(header.sections)
 {
 }
 
-ELF64& ELF64::operator=(ELF64&& header) noexcept
+ELF& ELF::operator=(ELF&& header) noexcept
 {
 	if (this == &header)
 		return *this;
 
+	bitDepth = header.bitDepth;
 	endianness = header.endianness;
 	abi = header.abi;
 	type = header.type;
 	arch = header.arch;
 	entryPoint = header.entryPoint;
-	programs = (ehs::Vector<ELF64_Program, ehs::UInt_16>&&)header.programs;
-	sections = (ehs::Vector<ELF64_Section, ehs::UInt_16>&&)header.sections;
+	programs = (ehs::Vector<ELF_Program, ehs::UInt_16>&&)header.programs;
+	sections = (ehs::Vector<ELF_Section, ehs::UInt_16>&&)header.sections;
 
-	header.endianness = ELFH_END_LE;
+	header.bitDepth = ELF_BIT_DEPTH_64;
+	header.endianness = ELF_END_LE;
 	header.abi = ELFH_ABI_SYSTEMV;
 	header.type = ELFH_TYPE_EXEC;
-	header.arch = ELFH_MARCH_AMD_X86_64;
+	header.arch = ELF_ARCH_X86_64;
 	header.entryPoint = 0;
 
 	header.InitializeSections();
@@ -64,11 +64,12 @@ ELF64& ELF64::operator=(ELF64&& header) noexcept
 	return *this;
 }
 
-ELF64& ELF64::operator=(const ELF64& header)
+ELF& ELF::operator=(const ELF& header)
 {
 	if (this == &header)
 		return *this;
 
+	bitDepth = header.bitDepth;
 	endianness = header.endianness;
 	abi = header.abi;
 	type = header.type;
@@ -80,27 +81,32 @@ ELF64& ELF64::operator=(const ELF64& header)
 	return *this;
 }
 
-ehs::UInt_8 ELF64::GetEndianness() const
+ehs::UInt_8 ELF::GetBitDepth() const
+{
+	return bitDepth;
+}
+
+ehs::UInt_8 ELF::GetEndianness() const
 {
 	return endianness;
 }
 
-ehs::UInt_8 ELF64::GetABI() const
+ehs::UInt_8 ELF::GetABI() const
 {
 	return abi;
 }
 
-ehs::UInt_16 ELF64::GetType() const
+ehs::UInt_16 ELF::GetType() const
 {
 	return type;
 }
 
-ehs::UInt_16 ELF64::GetArchitecture() const
+ehs::UInt_16 ELF::GetArchitecture() const
 {
 	return arch;
 }
 
-void ELF64::SetEntryPoint(ehs::UInt_16 programIndex)
+void ELF::SetEntryPoint(ehs::UInt_16 programIndex)
 {
 	if (programIndex > programs.End())
 	{
@@ -115,12 +121,12 @@ void ELF64::SetEntryPoint(ehs::UInt_16 programIndex)
 	EHS_LOG_SUCCESS();
 }
 
-ELF64_Program* ELF64::GetEntryPoint() const
+ELF_Program* ELF::GetEntryPoint() const
 {
 	return &programs[entryPoint];
 }
 
-void ELF64::AddProgram(ELF64_Program newProgram)
+void ELF::AddProgram(ELF_Program newProgram)
 {
 	/*
 	for (ehs::UInt_16 i = 0; i < programs.Size(); i++)
@@ -135,10 +141,10 @@ void ELF64::AddProgram(ELF64_Program newProgram)
 	}
 	*/
 
-	programs.Push((ELF64_Program&&)newProgram);
+	programs.Push((ELF_Program&&)newProgram);
 }
 
-bool ELF64::HasSection(ehs::UInt_64 hashId)
+bool ELF::HasSection(ehs::UInt_64 hashId)
 {
 	for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
 		if (sections[i].GetHashId() == hashId)
@@ -147,12 +153,12 @@ bool ELF64::HasSection(ehs::UInt_64 hashId)
 	return false;
 }
 
-bool ELF64::HasSection(ehs::Str_8& id)
+bool ELF::HasSection(ehs::Str_8& id)
 {
 	return HasSection(id.Hash_64());
 }
 
-void ELF64::AddSection(ELF64_Section newSection)
+void ELF::AddSection(ELF_Section newSection)
 {
 	if (HasSection(newSection.GetHashId()))
 	{
@@ -162,7 +168,7 @@ void ELF64::AddSection(ELF64_Section newSection)
 
 	ehs::Str_8 newId = newSection.GetId();
 
-	ELF64_Section* shStrTab = FindShStrTab();
+	ELF_Section* shStrTab = FindShStrTab();
 	ehs::Serializer<ehs::UInt_64>& data = shStrTab->GetData();
 
 	newSection.nameOffset = data.GetOffset();
@@ -172,12 +178,12 @@ void ELF64::AddSection(ELF64_Section newSection)
 	data.SetOffset(data.GetOffset() + newId.Size());
 	data.Write('\0');
 	
-	sections.Push((ELF64_Section&&)newSection);
+	sections.Push((ELF_Section&&)newSection);
 
 	EHS_LOG_SUCCESS();
 }
 
-ELF64_Section* ELF64::GetSection(ehs::UInt_64 sectionHashId) const
+ELF_Section* ELF::GetSection(ehs::UInt_64 sectionHashId) const
 {
 	for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
 		if (sections[i].GetHashId() == sectionHashId)
@@ -186,12 +192,12 @@ ELF64_Section* ELF64::GetSection(ehs::UInt_64 sectionHashId) const
 	return nullptr;
 }
 
-ELF64_Section* ELF64::GetSection(const ehs::Str_8& sectionId) const
+ELF_Section* ELF::GetSection(const ehs::Str_8& sectionId) const
 {
 	return GetSection(sectionId.Hash_64());
 }
 
-ehs::UInt_64 ELF64::GetLastSegmentOffset() const
+ehs::UInt_64 ELF::GetLastSegmentOffset() const
 {
 	ehs::UInt_64 offset = ELFH_SIZE + PRGH_SIZE * programs.Size();
 
@@ -206,7 +212,7 @@ ehs::UInt_64 ELF64::GetLastSegmentOffset() const
 	return offset;
 }
 
-ehs::Vec2_u64 ELF64::SegmentRange(ehs::UInt_64 sectionHashId)
+ehs::Vec2_u64 ELF::SegmentRange(ehs::UInt_64 sectionHashId)
 {
 	ehs::UInt_64 offset = ELFH_SIZE + PRGH_SIZE * programs.Size();
 	if (sectionHashId)
@@ -237,19 +243,19 @@ ehs::Vec2_u64 ELF64::SegmentRange(ehs::UInt_64 sectionHashId)
 	return {};
 }
 
-ehs::Vec2_u64 ELF64::SegmentRange(const ehs::Str_8& sectionId)
+ehs::Vec2_u64 ELF::SegmentRange(const ehs::Str_8& sectionId)
 {
 	return SegmentRange(sectionId.Hash_64());
 }
 
-ehs::Serializer<ehs::UInt_64> ELF64::Serialize() const
+ehs::Serializer<ehs::UInt_64> ELF::Serialize() const
 {
 	ehs::Serializer<ehs::UInt_64> result(ehs::Endianness::LE);
-	result.Resize(Elf_Magic_Size);
-	ehs::Util::Copy(&result[0], Elf_Magic, Elf_Magic_Size);
-	result.SetOffset(Elf_Magic_Size);
 
-	result.Write<ehs::UInt_8>(ELFH_ARCH_64);
+	// ELF magic number.
+	result.Write<ehs::UInt_32>(0x7F454C46);
+
+	result.Write<ehs::UInt_8>(ELF_BIT_DEPTH_64);
 	result.Write(endianness);
 	result.Write<ehs::UInt_8>(1);
 	result.Write(abi);
@@ -296,15 +302,15 @@ ehs::Serializer<ehs::UInt_64> ELF64::Serialize() const
 	return result;
 }
 
-void ELF64::InitializeSections()
+void ELF::InitializeSections()
 {
 	ehs::Str_8 nullName = ".NULL";
 
-	ELF64_Section null(nullName, 0, SECH_TYPE_NULL, 0, 0, 0);
+	ELF_Section null(nullName, 0, SECH_TYPE_NULL, 0, 0, 0);
 
 	ehs::Str_8 shStrTabName = ".shstrtab";
 
-	ELF64_Section shStrTab(shStrTabName, 0, SECH_TYPE_STRTAB, SECH_FLAG_STRINGS, 0, 1);
+	ELF_Section shStrTab(shStrTabName, 0, SECH_TYPE_STRTAB, SECH_FLAG_STRINGS, 0, 1);
 
 	ehs::Serializer<ehs::UInt_64>& data = shStrTab.GetData();
 
@@ -320,11 +326,11 @@ void ELF64::InitializeSections()
 	data.SetOffset(data.GetOffset() + shStrTabName.Size());
 	data.Write('\0');
 
-	sections.Push((ELF64_Section&&)null);
-	sections.Push((ELF64_Section&&)shStrTab);
+	sections.Push((ELF_Section&&)null);
+	sections.Push((ELF_Section&&)shStrTab);
 }
 
-ehs::UInt_64 ELF64::RetrieveSectionsOffset() const
+ehs::UInt_64 ELF::RetrieveSectionsOffset() const
 {
 	ehs::UInt_64 result = ELFH_SIZE + PRGH_SIZE * programs.Size();
 
@@ -339,7 +345,7 @@ ehs::UInt_64 ELF64::RetrieveSectionsOffset() const
 	return result;
 }
 
-ehs::UInt_16 ELF64::FindShStrTabIndex() const
+ehs::UInt_16 ELF::FindShStrTabIndex() const
 {
 	for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
 	{
@@ -356,7 +362,7 @@ ehs::UInt_16 ELF64::FindShStrTabIndex() const
 	return 0;
 }
 
-ELF64_Section* ELF64::FindShStrTab() const
+ELF_Section* ELF::FindShStrTab() const
 {
 	for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
 	{

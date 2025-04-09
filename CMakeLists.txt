@@ -27,10 +27,13 @@ endif ()
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Arctyx
-        src/ELF64_Sym.cpp include/ELF64_Sym.h
-        src/ELF64_Section.cpp include/ELF64_Section.h
-        src/ELF64_Program.cpp include/ELF64_Program.h
-        src/ELF64.cpp include/ELF64.h
+        include/arctyx/ELF_Architecture.h
+        src/ELF_Sym.cpp include/arctyx/ELF_Sym.h
+        src/ELF_Section.cpp include/arctyx/ELF_Section.h
+        src/ELF_Program.cpp include/arctyx/ELF_Program.h
+        src/ELF.cpp include/arctyx/ELF.h
+        src/Linker.cpp include/arctyx/Linker.h
+        src/Compiler.cpp include/arctyx/Compiler.h
         src/main.cpp
 )
 

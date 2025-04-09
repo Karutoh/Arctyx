@@ -74,7 +74,7 @@
 
 #define SYMH_SIZE 24
 
-class ELF64_Sym
+class ELF_Sym
 {
 private:
 	ehs::UInt_32 nameOffset;
@@ -85,9 +85,9 @@ private:
 	ehs::UInt_64 size;
 
 public:
-	ELF64_Sym();
+	ELF_Sym();
 
-	ELF64_Sym(ehs::UInt_32 nameOffset, ehs::UInt_8 type, ehs::UInt_8 visibility, ehs::UInt_16 section, ehs::UInt_64 value, ehs::UInt_64 size);
+	ELF_Sym(ehs::UInt_32 nameOffset, ehs::UInt_8 type, ehs::UInt_8 visibility, ehs::UInt_16 section, ehs::UInt_64 value, ehs::UInt_64 size);
 
 	void Serialize(ehs::Serializer<ehs::UInt_64>& inData) const;
 };

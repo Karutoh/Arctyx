@@ -12,12 +12,12 @@
 
 #define PRGH_SIZE 56
 
-class ELF64;
+class ELF;
 
-class ELF64_Program
+class ELF_Program
 {
 private:
-	friend class ELF64;
+	friend class ELF;
 
 	ehs::UInt_32 type;
 	ehs::UInt_32 flags;
@@ -29,19 +29,19 @@ private:
 	ehs::UInt_64 align;
 
 public:
-	ELF64_Program();
+	ELF_Program();
 
-	ELF64_Program(ehs::UInt_32 type, ehs::UInt_32 flags, ehs::UInt_64 offset, ehs::UInt_64 address, ehs::UInt_64 size, ehs::UInt_64 adjustedMemSize, ehs::UInt_64 align);
+	ELF_Program(ehs::UInt_32 type, ehs::UInt_32 flags, ehs::UInt_64 offset, ehs::UInt_64 address, ehs::UInt_64 size, ehs::UInt_64 adjustedMemSize, ehs::UInt_64 align);
 
-	ELF64_Program(ehs::Serializer<ehs::UInt_64>& data);
+	ELF_Program(ehs::Serializer<ehs::UInt_64>& data);
 
-	ELF64_Program(ELF64_Program&& program) noexcept;
+	ELF_Program(ELF_Program&& program) noexcept;
 
-	ELF64_Program(const ELF64_Program& program);
+	ELF_Program(const ELF_Program& program);
 
-	ELF64_Program& operator=(ELF64_Program&& program) noexcept;
+	ELF_Program& operator=(ELF_Program&& program) noexcept;
 
-	ELF64_Program& operator=(const ELF64_Program& program);
+	ELF_Program& operator=(const ELF_Program& program);
 
 	ehs::UInt_32 GetType() const;
 
