@@ -1,4 +1,4 @@
-#include "arctyx/ELF.h"
+#include "arctyx/linker/formats/ELF.h"
 
 ELF::ELF()
 	: bitDepth(ELF_BIT_DEPTH_64), endianness(ELF_END_LE), abi(ELFH_ABI_SYSTEMV), type(ELFH_TYPE_EXEC),
@@ -199,7 +199,7 @@ ELF_Section* ELF::GetSection(const ehs::Str_8& sectionId) const
 
 ehs::UInt_64 ELF::GetLastSegmentOffset() const
 {
-	ehs::UInt_64 offset = ELFH_SIZE + PRGH_SIZE * programs.Size();
+	ehs::UInt_64 offset = ELF_64_BIT_HEADER_SIZE + PRGH_SIZE * programs.Size();
 
 	for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
 	{
@@ -214,7 +214,7 @@ ehs::UInt_64 ELF::GetLastSegmentOffset() const
 
 ehs::Vec2_u64 ELF::SegmentRange(ehs::UInt_64 sectionHashId)
 {
-	ehs::UInt_64 offset = ELFH_SIZE + PRGH_SIZE * programs.Size();
+	ehs::UInt_64 offset = ELF_64_BIT_HEADER_SIZE + PRGH_SIZE * programs.Size();
 	if (sectionHashId)
 	{
 		for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
@@ -252,35 +252,13 @@ ehs::Serializer<ehs::UInt_64> ELF::Serialize() const
 {
 	ehs::Serializer<ehs::UInt_64> result(ehs::Endianness::LE);
 
-	// ELF magic number.
-	result.Write<ehs::UInt_32>(0x7F454C46);
-
-	result.Write<ehs::UInt_8>(ELF_BIT_DEPTH_64);
-	result.Write(endianness);
-	result.Write<ehs::UInt_8>(1);
-	result.Write(abi);
-	result.Write<ehs::UInt_8>(0);
-
-	result.Resize(result.Size() + 7);
-	ehs::Util::Zero(&result[result.GetOffset()], 7);
-	result.SetOffset(result.GetOffset() + 7);
-
-	result.Write(type);
-	result.Write(arch);
-	result.Write<ehs::UInt_32>(1);
-	result.Write(programs[entryPoint].pAddr);
-	result.Write<ehs::UInt_64>(ELFH_SIZE);
-	result.Write(RetrieveSectionsOffset());
-	result.Write<ehs::UInt_32>(0);
-	result.Write<ehs::UInt_16>(ELFH_SIZE);
-	result.Write<ehs::UInt_16>(PRGH_SIZE);
-	result.Write(programs.Size());
-	result.Write<ehs::UInt_16>(SECH_SIZE);
-	result.Write(sections.Size());
-	result.Write(FindShStrTabIndex());
+	if (bitDepth == ELF_BIT_DEPTH_64)
+		Serialize_64(result);
+	else if (bitDepth == ELF_BIT_DEPTH_32)
+		Serialize_32(result);
 
 	for (ehs::UInt_16 i = 0; i < programs.Size(); i++)
-		programs[i].Serialize(result);
+		programs[i].Serialize(bitDepth, result);
 
 	for (ehs::UInt_16 i = 1; i < sections.Size(); i++)
 	{
@@ -297,9 +275,81 @@ ehs::Serializer<ehs::UInt_64> ELF::Serialize() const
 	}
 
 	for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
-		sections[i].Serialize(result);
+		sections[i].Serialize(bitDepth, result);
 	
 	return result;
+}
+
+void ELF::Serialize_64(ehs::Serializer<ehs::UInt_64> &data) const
+{
+	data.Resize(ELF_64_BIT_HEADER_SIZE);
+
+	// ELF magic number.
+	data.Write<ehs::UInt_32>(0x464C457F);
+
+	data.Write<ehs::UInt_8>(bitDepth);
+	data.Write(endianness);
+	data.Write<ehs::UInt_8>(1);
+	data.Write(abi);
+	data.Write<ehs::UInt_8>(0);
+
+	ehs::Util::Zero(&data[data.GetOffset()], 7);
+	data.SetOffset(data.GetOffset() + 7);
+
+	data.Write(type);
+	data.Write(arch);
+	data.Write<ehs::UInt_32>(1);
+	data.Write(programs[entryPoint].pAddr);
+	data.Write<ehs::UInt_64>(ELF_64_BIT_HEADER_SIZE);
+	data.Write(RetrieveSectionsOffset());
+	data.Write<ehs::UInt_32>(0);
+	data.Write<ehs::UInt_16>(ELF_64_BIT_HEADER_SIZE);
+	data.Write<ehs::UInt_16>(PRGH_SIZE);
+	data.Write(programs.Size());
+	data.Write<ehs::UInt_16>(SECH_SIZE);
+	data.Write(sections.Size());
+	data.Write(FindShStrTabIndex());
+}
+
+void ELF::Serialize_32(ehs::Serializer<ehs::UInt_64> &data) const
+{
+	data.Resize(ELF_32_BIT_HEADER_SIZE);
+
+	// ELF magic number.
+	data.Write<ehs::UInt_32>(0x464C457F);
+
+	data.Write<ehs::UInt_8>(bitDepth);
+	data.Write(endianness);
+	data.Write<ehs::UInt_8>(1);
+	data.Write(abi);
+	data.Write<ehs::UInt_8>(0);
+
+	ehs::Util::Zero(&data[data.GetOffset()], 7);
+	data.SetOffset(data.GetOffset() + 7);
+
+	data.Write(type);
+	data.Write(arch);
+	data.Write<ehs::UInt_32>(1);
+	data.Write(programs[entryPoint].pAddr);
+
+	if (bitDepth == ELF_BIT_DEPTH_64)
+		data.Write<ehs::UInt_64>(ELF_64_BIT_HEADER_SIZE);
+	else if (bitDepth == ELF_BIT_DEPTH_32)
+		data.Write<ehs::UInt_32>(ELF_32_BIT_HEADER_SIZE);
+
+	data.Write(RetrieveSectionsOffset());
+	data.Write<ehs::UInt_32>(0);
+
+	if (bitDepth == ELF_BIT_DEPTH_64)
+		data.Write<ehs::UInt_16>(ELF_64_BIT_HEADER_SIZE);
+	else if (bitDepth == ELF_BIT_DEPTH_32)
+		data.Write<ehs::UInt_16>(ELF_32_BIT_HEADER_SIZE);
+
+	data.Write<ehs::UInt_16>(PRGH_SIZE);
+	data.Write(programs.Size());
+	data.Write<ehs::UInt_16>(SECH_SIZE);
+	data.Write(sections.Size());
+	data.Write(FindShStrTabIndex());
 }
 
 void ELF::InitializeSections()
@@ -332,7 +382,7 @@ void ELF::InitializeSections()
 
 ehs::UInt_64 ELF::RetrieveSectionsOffset() const
 {
-	ehs::UInt_64 result = ELFH_SIZE + PRGH_SIZE * programs.Size();
+	ehs::UInt_64 result = ELF_64_BIT_HEADER_SIZE + PRGH_SIZE * programs.Size();
 
 	for (ehs::UInt_16 i = 0; i < sections.Size(); i++)
 	{

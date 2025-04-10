@@ -1,5 +1,5 @@
-#include "arctyx/ELF.h"
-#include "arctyx/ELF_Sym.h"
+#include "arctyx/linker/formats/ELF.h"
+#include "arctyx/linker/formats/ELF_Sym.h"
 
 #include <ehs/EHS.h>
 #include <ehs/io/Console.h>
@@ -8,6 +8,7 @@
 int main()
 {
 	ehs::Initialize("Arctyx", "Alpha", {1, 0, 0});
+	ehs::Log::EnableImmediateMode(true);
 
 	ehs::Vector<ehs::Str_8> args = ehs::Console::GetArgs_8();
 	if (args.Size() <= 1)
@@ -28,7 +29,7 @@ int main()
 
 	ELF_Section text(".text", 0x1000, SECH_TYPE_PROGBITS, SECH_FLAG_ALLOC | SECH_FLAG_EXEC, 0x401000, 16);
 	text.SetData(code);
-	executable.AddSection((ELF_Section&&)text);
+	executable.AddSection(text);
 
 	ELF_Section strTab(".strtab", 0, SECH_TYPE_STRTAB, 0, 0, 1);
 	ehs::Serializer<ehs::UInt_64>& strTabData = strTab.GetData();

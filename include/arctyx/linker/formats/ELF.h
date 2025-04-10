@@ -14,7 +14,8 @@
 #define ELFH_TYPE_DYN 0x03
 
 /// True header sizes.
-#define ELFH_SIZE 64
+#define ELF_64_BIT_HEADER_SIZE 64
+#define ELF_32_BIT_HEADER_SIZE 52
 
 class ELF
 {
@@ -78,6 +79,10 @@ public:
 	ehs::Serializer<ehs::UInt_64> Serialize() const;
 
 private:
+	void Serialize_64(ehs::Serializer<ehs::UInt_64> &data) const;
+
+	void Serialize_32(ehs::Serializer<ehs::UInt_64> &data) const;
+
 	void InitializeSections();
 
 	ehs::UInt_64 RetrieveSectionsOffset() const;

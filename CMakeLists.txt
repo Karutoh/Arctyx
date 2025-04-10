@@ -26,24 +26,31 @@ endif ()
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Arctyx
-        include/arctyx/ELF_Architecture.h
-        src/ELF_Sym.cpp include/arctyx/ELF_Sym.h
-        src/ELF_Section.cpp include/arctyx/ELF_Section.h
-        src/ELF_Program.cpp include/arctyx/ELF_Program.h
-        src/ELF.cpp include/arctyx/ELF.h
-        src/Linker.cpp include/arctyx/Linker.h
-        src/Compiler.cpp include/arctyx/Compiler.h
+add_library(Arctyx SHARED
+        include/arctyx/linker/formats/ELF_Architecture.h
+        src/linker/formats/ELF_Sym.cpp include/arctyx/linker/formats/ELF_Sym.h
+        src/linker/formats/ELF_Section.cpp include/arctyx/linker/formats/ELF_Section.h
+        src/linker/formats/ELF_Program.cpp include/arctyx/linker/formats/ELF_Program.h
+        src/linker/formats/ELF.cpp include/arctyx/linker/formats/ELF.h
+        src/linker/Linker.cpp include/arctyx/linker/Linker.h
+        src/compiler/Compiler.cpp include/arctyx/compiler/Compiler.h
+        src/compiler/Architecture.cpp include/arctyx/compiler/Architecture.h
+        src/compiler/Instruction.cpp include/arctyx/compiler/Instruction.h
+)
+
+add_executable(Tools
         src/main.cpp
 )
 
-target_include_directories(Arctyx PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(Arctyx PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
 if (IS_OS_LINUX)
     add_compile_definitions(LWE_WS_XCB)
 endif()
 
-target_link_directories(Arctyx PRIVATE "${USER_HOME_DIRECTORY}/.local/lib")
-target_include_directories(Arctyx PRIVATE "${USER_HOME_DIRECTORY}/.local/include")
+target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/lib")
+target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/bin")
+target_include_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/include")
 
-target_link_libraries(Arctyx PRIVATE xcb xcb-cursor xcb-xfixes xcb-xinput z asound EHS)
+target_link_libraries(Arctyx PUBLIC xcb xcb-cursor xcb-xfixes xcb-xinput z asound EHS_Dyn)
+target_link_libraries(Tools PRIVATE Arctyx)

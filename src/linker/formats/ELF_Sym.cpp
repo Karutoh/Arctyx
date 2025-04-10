@@ -1,4 +1,4 @@
-#include "arctyx/ELF_Sym.h"
+#include "arctyx/linker/formats/ELF_Sym.h"
 
 ELF_Sym::ELF_Sym()
 	: nameOffset(0), type(0), visibility(0), section(0), value(0), size(0)

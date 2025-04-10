@@ -1,4 +1,5 @@
-#include "arctyx/ELF_Section.h"
+#include "arctyx/linker/formats/ELF_Section.h"
+#include "arctyx/linker/formats/ELF_Architecture.h"
 
 ELF_Section::ELF_Section()
 	: hashId(0), nameOffset(0), fileOffset(0), type(0), flags(0), vAddr(0), segmentOffset(0), link(0),
@@ -143,7 +144,7 @@ void ELF_Section::SetEntries(ehs::UInt_64 newEntries)
 
 void ELF_Section::SetData(ehs::Serializer<ehs::UInt_64> newData)
 {
-	data = (ehs::Serializer<ehs::UInt_64>&&)newData;
+	data = (ehs::Serializer<ehs::UInt_64> &&)newData;
 }
 
 ehs::Serializer<ehs::UInt_64>& ELF_Section::GetData()
@@ -151,16 +152,38 @@ ehs::Serializer<ehs::UInt_64>& ELF_Section::GetData()
 	return data;
 }
 
-void ELF_Section::Serialize(ehs::Serializer<ehs::UInt_64>& inData) const
+void ELF_Section::Serialize(const ehs::UInt_8 &bitDepth, ehs::Serializer<ehs::UInt_64>& inData) const
 {
-	inData.Write(nameOffset);
-	inData.Write(type);
-	inData.Write(flags);
-	inData.Write(vAddr);
-	inData.Write(segmentOffset);
-	inData.Write(data.Size());
-	inData.Write(link);
-	inData.Write(info);
-	inData.Write(align);
-	inData.Write(entries);
+	if (bitDepth == ELF_BIT_DEPTH_64)
+		Serialize_64(inData);
+	else if (bitDepth == ELF_BIT_DEPTH_32)
+		Serialize_32(inData);
+}
+
+void ELF_Section::Serialize_64(ehs::Serializer<ehs::UInt_64> &data) const
+{
+	data.Write(nameOffset);
+	data.Write(type);
+	data.Write(flags);
+	data.Write(vAddr);
+	data.Write(segmentOffset);
+	data.Write(data.Size());
+	data.Write(link);
+	data.Write(info);
+	data.Write(align);
+	data.Write(entries);
+}
+
+void ELF_Section::Serialize_32(ehs::Serializer<ehs::UInt_64> &data) const
+{
+	data.Write(nameOffset);
+	data.Write(type);
+	data.Write<ehs::UInt_32>(flags);
+	data.Write<ehs::UInt_32>(vAddr);
+	data.Write<ehs::UInt_32>(segmentOffset);
+	data.Write<ehs::UInt_32>(data.Size());
+	data.Write(link);
+	data.Write(info);
+	data.Write<ehs::UInt_32>(align);
+	data.Write<ehs::UInt_32>(entries);
 }

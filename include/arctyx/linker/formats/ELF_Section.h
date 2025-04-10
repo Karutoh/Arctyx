@@ -71,5 +71,10 @@ public:
 
 	ehs::Serializer<ehs::UInt_64>& GetData();
 
-	void Serialize(ehs::Serializer<ehs::UInt_64>& inData) const;
+	void Serialize(const ehs::UInt_8 &bitDepth, ehs::Serializer<ehs::UInt_64>& inData) const;
+
+private:
+	void Serialize_64(ehs::Serializer<ehs::UInt_64> &data) const;
+
+	void Serialize_32(ehs::Serializer<ehs::UInt_64> &data) const;
 };

@@ -1,4 +1,5 @@
-#include "arctyx/ELF_Program.h"
+#include "arctyx/linker/formats/ELF_Program.h"
+#include "arctyx/linker/formats/ELF_Architecture.h"
 
 ELF_Program::ELF_Program()
 	: type(PRGH_TYPE_LOAD), flags(PRGH_FLAG_EXEC | PRGH_FLAG_READ), offset(0), vAddr(0), pAddr(0), fileSize(0),
@@ -96,14 +97,34 @@ ehs::UInt_64 ELF_Program::GetAlign() const
 	return align;
 }
 
-void ELF_Program::Serialize(ehs::Serializer<ehs::UInt_64>& inData) const
+void ELF_Program::Serialize(const ehs::UInt_8 &bitDepth, ehs::Serializer<ehs::UInt_64>& inData) const
 {
-	inData.Write(type);
-	inData.Write(flags);
-	inData.Write(offset);
-	inData.Write(vAddr);
-	inData.Write(pAddr);
-	inData.Write(fileSize);
-	inData.Write(fileSize + adjustedMemSize);
-	inData.Write(align);
+	if (bitDepth == ELF_BIT_DEPTH_64)
+		Serialize_64(inData);
+	else if (bitDepth == ELF_BIT_DEPTH_32)
+		Serialize_32(inData);
+}
+
+void ELF_Program::Serialize_64(ehs::Serializer<ehs::UInt_64> &data) const
+{
+	data.Write(type);
+	data.Write(flags);
+	data.Write(offset);
+	data.Write(vAddr);
+	data.Write(pAddr);
+	data.Write(fileSize);
+	data.Write(fileSize + adjustedMemSize);
+	data.Write(align);
+}
+
+void ELF_Program::Serialize_32(ehs::Serializer<ehs::UInt_64> &data) const
+{
+	data.Write(type);
+	data.Write<ehs::UInt_32>(offset);
+	data.Write<ehs::UInt_32>(vAddr);
+	data.Write<ehs::UInt_32>(pAddr);
+	data.Write<ehs::UInt_32>(fileSize);
+	data.Write<ehs::UInt_32>(fileSize + adjustedMemSize);
+	data.Write(flags);
+	data.Write<ehs::UInt_32>(align);
 }
