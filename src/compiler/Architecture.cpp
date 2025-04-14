@@ -1,5 +1,7 @@
 #include "arctyx/compiler/Architecture.h"
 
+ehs::Array<Architecture> Architecture::architectures;
+
 Architecture::Architecture()
 	: id(0)
 {
@@ -44,7 +46,7 @@ Architecture & Architecture::operator=(const Architecture &arc)
 	return *this;
 }
 
-ehs::UInt_64 Architecture::Id() const
+ehs::UInt_64 Architecture::GetId() const
 {
 	return id;
 }
@@ -88,6 +90,44 @@ bool Architecture::AddInstruction(Instruction ins)
 		return false;
 
 	instructions.Push((Instruction &&)ins);
+
+	return true;
+}
+
+bool Architecture::Has(const ehs::UInt_64 &id)
+{
+	for (ehs::UInt_64 i = 0; i < architectures.Size(); ++i)
+		if (architectures[i].GetId() == id)
+			return true;
+
+	return false;
+}
+
+bool Architecture::Has(const ehs::Str_8 &name)
+{
+	return Has(name.Hash_64());
+}
+
+const Architecture *Architecture::Get(const ehs::UInt_64 &id)
+{
+	for (ehs::UInt_64 i = 0; i < architectures.Size(); ++i)
+		if (architectures[i].GetId() == id)
+			return &architectures[i];
+
+	return nullptr;
+}
+
+const Architecture *Architecture::Get(const ehs::Str_8 &name)
+{
+	return Get(name.Hash_64());
+}
+
+bool Architecture::Add(Architecture arc)
+{
+	if (Has(arc.GetId()))
+		return false;
+
+	architectures.Push((Architecture &&)arc);
 
 	return true;
 }

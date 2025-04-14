@@ -36,9 +36,16 @@ add_library(Arctyx SHARED
         src/compiler/Compiler.cpp include/arctyx/compiler/Compiler.h
         src/compiler/Architecture.cpp include/arctyx/compiler/Architecture.h
         src/compiler/Instruction.cpp include/arctyx/compiler/Instruction.h
+        src/compiler/Language.cpp include/arctyx/compiler/Language.h
+        src/compiler/Token.cpp include/arctyx/compiler/Token.h
+        src/Arctyx.cpp include/arctyx/Arctyx.h
+        src/compiler/Combination.cpp
+        include/arctyx/compiler/Combination.h
+        src/compiler/Keyword.cpp
+        include/arctyx/compiler/Keyword.h
 )
 
-add_executable(Tools
+add_executable(ArctyxTools
         src/main.cpp
 )
 
@@ -53,4 +60,4 @@ target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/bin")
 target_include_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/include")
 
 target_link_libraries(Arctyx PUBLIC xcb xcb-cursor xcb-xfixes xcb-xinput z asound EHS_Dyn)
-target_link_libraries(Tools PRIVATE Arctyx)
+target_link_libraries(ArctyxTools PRIVATE Arctyx)

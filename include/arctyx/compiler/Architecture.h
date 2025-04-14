@@ -11,6 +11,8 @@ private:
 	ehs::Str_8 name;
 	ehs::Array<Instruction> instructions;
 
+	static ehs::Array<Architecture> architectures;
+
 public:
 	Architecture();
 
@@ -24,7 +26,7 @@ public:
 
 	Architecture &operator=(const Architecture &arc);
 
-	ehs::UInt_64 Id() const;
+	ehs::UInt_64 GetId() const;
 
 	ehs::Str_8 GetName() const;
 
@@ -37,4 +39,14 @@ public:
 	const Instruction *GetInstruction(const ehs::Str_8 &name) const;
 
 	bool AddInstruction(Instruction ins);
+
+	static bool Has(const ehs::UInt_64 &id);
+
+	static bool Has(const ehs::Str_8 &name);
+
+	static const Architecture *Get(const ehs::UInt_64 &id);
+
+	static const Architecture *Get(const ehs::Str_8 &name);
+
+	static bool Add(Architecture arc);
 };

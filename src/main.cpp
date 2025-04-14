@@ -5,6 +5,19 @@
 #include <ehs/io/Console.h>
 #include <ehs/io/File.h>
 
+struct Foo
+{
+	bool a;
+	ehs::UInt_64 b;
+	ehs::UInt_16 c;
+};
+
+struct Bar
+{
+	Foo a;
+	ehs::Char_8 b[128];
+};
+
 int main()
 {
 	ehs::Initialize("Arctyx", "Alpha", {1, 0, 0});
