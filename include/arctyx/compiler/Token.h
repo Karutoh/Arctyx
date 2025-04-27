@@ -2,8 +2,9 @@
 
 #include <ehs/Str.h>
 
-enum class TokenType : ehs::UInt_8
+enum class TokenT : ehs::UInt_8
 {
+	UNKNOWN,
 	VALUE,
 	KEYWORD,
 	IDENTIFIER,
@@ -11,16 +12,16 @@ enum class TokenType : ehs::UInt_8
 	COMPOUND_OPERATOR
 };
 
-class Token
+class EHS_LIB_IO Token
 {
 private:
-	TokenType type;
+	TokenT type;
 	ehs::Str_8 value;
 
 public:
 	Token();
 
-	Token(TokenType type, ehs::Str_8 value);
+	Token(const TokenT &type, ehs::Str_8 value);
 
 	Token(Token &&token) noexcept;
 
@@ -30,7 +31,7 @@ public:
 
 	Token &operator=(const Token &token);
 
-	TokenType GetType() const;
+	TokenT GetType() const;
 
 	ehs::Str_8 GetValue() const;
 };

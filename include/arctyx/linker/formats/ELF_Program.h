@@ -14,7 +14,7 @@
 
 class ELF;
 
-class ELF_Program
+class EHS_LIB_IO ELF_Program
 {
 private:
 	friend class ELF;

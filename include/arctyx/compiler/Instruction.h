@@ -1,10 +1,16 @@
 #pragma once
+
 #include <ehs/Str.h>
 #include <ehs/Types.h>
 
-class Instruction
+class Architecture;
+
+class EHS_LIB_IO Instruction
 {
 private:
+	friend class Architecture;
+
+	Architecture *arch;
 	ehs::UInt_64 id;
 	ehs::Str_8 name;
 	ehs::UInt_8 size;
@@ -32,6 +38,8 @@ public:
 	Instruction &operator=(Instruction &&ins) noexcept;
 
 	Instruction &operator=(const Instruction &ins);
+
+	const Architecture *GetArchitecture() const;
 
 	ehs::UInt_64 GetId() const;
 

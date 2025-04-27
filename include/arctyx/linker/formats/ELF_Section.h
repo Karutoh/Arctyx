@@ -17,7 +17,7 @@
 
 #define SECH_SIZE 64
 
-class ELF_Section
+class EHS_LIB_IO ELF_Section
 {
 private:
 	friend class ELF;

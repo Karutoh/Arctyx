@@ -17,7 +17,7 @@
 #define ELF_64_BIT_HEADER_SIZE 64
 #define ELF_32_BIT_HEADER_SIZE 52
 
-class ELF
+class EHS_LIB_IO ELF
 {
 private:
 	ehs::UInt_8 bitDepth;

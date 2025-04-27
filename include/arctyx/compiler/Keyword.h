@@ -3,7 +3,7 @@
 
 #include "Instruction.h"
 
-class Keyword
+class EHS_LIB_IO Keyword
 {
 private:
 	ehs::Str_8 identifier;

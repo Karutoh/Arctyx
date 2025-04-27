@@ -1,7 +1,8 @@
 #pragma once
+
 #include <ehs/Types.h>
 
-class Arctyx
+class EHS_LIB_IO Arctyx
 {
 private:
 	static void Initialize();

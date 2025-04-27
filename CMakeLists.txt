@@ -39,10 +39,12 @@ add_library(Arctyx SHARED
         src/compiler/Language.cpp include/arctyx/compiler/Language.h
         src/compiler/Token.cpp include/arctyx/compiler/Token.h
         src/Arctyx.cpp include/arctyx/Arctyx.h
-        src/compiler/Combination.cpp
-        include/arctyx/compiler/Combination.h
+        src/compiler/Interpretation.cpp
+        include/arctyx/compiler/Interpretation.h
         src/compiler/Keyword.cpp
         include/arctyx/compiler/Keyword.h
+        include/arctyx/compiler/Symbol.h
+        src/compiler/Symbol.cpp
 )
 
 add_executable(ArctyxTools
@@ -53,11 +55,21 @@ target_include_directories(Arctyx PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
 if (IS_OS_LINUX)
     add_compile_definitions(LWE_WS_XCB)
+
+    target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/lib")
+    target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/bin")
+    target_include_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/include")
+
+    target_link_libraries(Arctyx PUBLIC xcb xcb-cursor xcb-xfixes xcb-xinput z asound EHS_Dyn)
+elseif (IS_OS_WINDOWS)
+    target_compile_definitions(Arctyx PRIVATE EHS_LIB_EXPORT)
+    target_compile_definitions(ArctyxTools PRIVATE EHS_LIB_IMPORT)
+
+    target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/EHS/lib")
+    target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/EHS/bin")
+    target_include_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/EHS/include")
+
+    target_link_libraries(Arctyx PUBLIC EHS_Dyn)
 endif()
 
-target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/lib")
-target_link_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/bin")
-target_include_directories(Arctyx PUBLIC "${USER_HOME_DIRECTORY}/.local/include")
-
-target_link_libraries(Arctyx PUBLIC xcb xcb-cursor xcb-xfixes xcb-xinput z asound EHS_Dyn)
 target_link_libraries(ArctyxTools PRIVATE Arctyx)

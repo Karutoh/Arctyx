@@ -4,14 +4,16 @@
 
 #include "Instruction.h"
 
-class Architecture
+class EHS_LIB_IO Architecture
 {
 private:
+	friend class Arctyx;
+
 	ehs::UInt_64 id;
 	ehs::Str_8 name;
 	ehs::Array<Instruction> instructions;
 
-	static ehs::Array<Architecture> architectures;
+	static ehs::Array<const Architecture *> architectures;
 
 public:
 	Architecture();

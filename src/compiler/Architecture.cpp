@@ -1,6 +1,6 @@
 #include "arctyx/compiler/Architecture.h"
 
-ehs::Array<Architecture> Architecture::architectures;
+ehs::Array<const Architecture *> Architecture::architectures;
 
 Architecture::Architecture()
 	: id(0)
@@ -13,13 +13,17 @@ Architecture::Architecture(ehs::Str_8 name)
 }
 
 Architecture::Architecture(Architecture &&arch) noexcept
-	: id(arch.id), name((ehs::Str_8 &&)arch.name)
+	: id(arch.id), name((ehs::Str_8 &&)arch.name), instructions((ehs::Array<Instruction> &&)arch.instructions)
 {
+	for (ehs::Size i = 0; i < instructions.Size(); ++i)
+		instructions[i].arch = this;
 }
 
 Architecture::Architecture(const Architecture &arc)
-	: id(arc.id), name(arc.name)
+	: id(arc.id), name(arc.name), instructions(arc.instructions)
 {
+	for (ehs::Size i = 0; i < instructions.Size(); ++i)
+		instructions[i].arch = this;
 }
 
 Architecture & Architecture::operator=(Architecture &&arc) noexcept
@@ -29,6 +33,10 @@ Architecture & Architecture::operator=(Architecture &&arc) noexcept
 
 	id = arc.id;
 	name = (ehs::Str_8 &&)arc.name;
+	instructions = (ehs::Array<Instruction> &&)arc.instructions;
+
+	for (ehs::Size i = 0; i < instructions.Size(); ++i)
+		instructions[i].arch = this;
 
 	arc.id = 0;
 
@@ -42,6 +50,10 @@ Architecture & Architecture::operator=(const Architecture &arc)
 
 	id = arc.id;
 	name = arc.name;
+	instructions = arc.instructions;
+
+	for (ehs::Size i = 0; i < instructions.Size(); ++i)
+		instructions[i].arch = this;
 
 	return *this;
 }
@@ -89,6 +101,8 @@ bool Architecture::AddInstruction(Instruction ins)
 	if (HasInstruction(ins.GetId()))
 		return false;
 
+	ins.arch = this;
+
 	instructions.Push((Instruction &&)ins);
 
 	return true;
@@ -97,7 +111,7 @@ bool Architecture::AddInstruction(Instruction ins)
 bool Architecture::Has(const ehs::UInt_64 &id)
 {
 	for (ehs::UInt_64 i = 0; i < architectures.Size(); ++i)
-		if (architectures[i].GetId() == id)
+		if (architectures[i]->GetId() == id)
 			return true;
 
 	return false;
@@ -111,8 +125,8 @@ bool Architecture::Has(const ehs::Str_8 &name)
 const Architecture *Architecture::Get(const ehs::UInt_64 &id)
 {
 	for (ehs::UInt_64 i = 0; i < architectures.Size(); ++i)
-		if (architectures[i].GetId() == id)
-			return &architectures[i];
+		if (architectures[i]->GetId() == id)
+			return architectures[i];
 
 	return nullptr;
 }
@@ -127,7 +141,7 @@ bool Architecture::Add(Architecture arc)
 	if (Has(arc.GetId()))
 		return false;
 
-	architectures.Push((Architecture &&)arc);
+	architectures.Push(new Architecture((Architecture &&)arc));
 
 	return true;
 }

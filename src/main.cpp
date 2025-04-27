@@ -5,19 +5,6 @@
 #include <ehs/io/Console.h>
 #include <ehs/io/File.h>
 
-struct Foo
-{
-	bool a;
-	ehs::UInt_64 b;
-	ehs::UInt_16 c;
-};
-
-struct Bar
-{
-	Foo a;
-	ehs::Char_8 b[128];
-};
-
 int main()
 {
 	ehs::Initialize("Arctyx", "Alpha", {1, 0, 0});
@@ -26,8 +13,8 @@ int main()
 	ehs::Vector<ehs::Str_8> args = ehs::Console::GetArgs_8();
 	if (args.Size() <= 1)
 	{
-		ehs::Console::Write_8(ehs::GetAppName_8() + " " + ehs::GetAppVersionId_8() + " v" + ehs::Str_8::FromNum(ehs::GetVersion().major) + "." +
-			ehs::Str_8::FromNum(ehs::GetVersion().minor) + "." + ehs::Str_8::FromNum(ehs::GetVersion().patch));
+		ehs::Console::Write_8(ehs::GetAppName_8() + " " + ehs::GetAppVersionId_8() + " v" + ehs::Str_8::FromNum(ehs::GetAppVersion().major) + "." +
+			ehs::Str_8::FromNum(ehs::GetAppVersion().minor) + "." + ehs::Str_8::FromNum(ehs::GetAppVersion().patch));
 
 		return 0;
 	}

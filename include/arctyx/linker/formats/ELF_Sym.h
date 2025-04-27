@@ -74,7 +74,7 @@
 
 #define SYMH_SIZE 24
 
-class ELF_Sym
+class EHS_LIB_IO ELF_Sym
 {
 private:
 	ehs::UInt_32 nameOffset;
