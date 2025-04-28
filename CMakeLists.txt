@@ -45,6 +45,29 @@ add_library(Arctyx SHARED
         include/arctyx/compiler/Keyword.h
         include/arctyx/compiler/Symbol.h
         src/compiler/Symbol.cpp
+        src/x64Arch.cpp
+        include/arctyx/compiler/Primitive.h
+        src/compiler/Primitive.cpp
+        include/arctyx/compiler/Register.h
+        src/compiler/Register.cpp
+        include/arctyx/compiler/Operator.h
+        src/compiler/Operator.cpp
+)
+
+add_library(x64Arch SHARED
+        src/x64Arch.cpp
+)
+
+set_target_properties(x64Arch PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/architectures"
+)
+
+add_library(ArctyxLang SHARED
+        src/ArctyxLang.cpp
+)
+
+set_target_properties(ArctyxLang PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/languages"
 )
 
 add_executable(ArctyxTools
@@ -72,4 +95,6 @@ elseif (IS_OS_WINDOWS)
     target_link_libraries(Arctyx PUBLIC EHS_Dyn)
 endif()
 
+target_link_libraries(x64Arch PRIVATE Arctyx)
+target_link_libraries(ArctyxLang PRIVATE Arctyx)
 target_link_libraries(ArctyxTools PRIVATE Arctyx)

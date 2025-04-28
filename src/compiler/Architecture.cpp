@@ -13,14 +13,15 @@ Architecture::Architecture(ehs::Str_8 name)
 }
 
 Architecture::Architecture(Architecture &&arch) noexcept
-	: id(arch.id), name((ehs::Str_8 &&)arch.name), instructions((ehs::Array<Instruction> &&)arch.instructions)
+	: id(arch.id), name((ehs::Str_8 &&)arch.name), registers((ehs::Array<Register> &&)arch.registers),
+	instructions((ehs::Array<Instruction> &&)arch.instructions)
 {
 	for (ehs::Size i = 0; i < instructions.Size(); ++i)
 		instructions[i].arch = this;
 }
 
 Architecture::Architecture(const Architecture &arc)
-	: id(arc.id), name(arc.name), instructions(arc.instructions)
+	: id(arc.id), name(arc.name), registers(arc.registers), instructions(arc.instructions)
 {
 	for (ehs::Size i = 0; i < instructions.Size(); ++i)
 		instructions[i].arch = this;
@@ -33,6 +34,7 @@ Architecture & Architecture::operator=(Architecture &&arc) noexcept
 
 	id = arc.id;
 	name = (ehs::Str_8 &&)arc.name;
+	registers = (ehs::Array<Register> &&)arc.registers;
 	instructions = (ehs::Array<Instruction> &&)arc.instructions;
 
 	for (ehs::Size i = 0; i < instructions.Size(); ++i)
@@ -50,6 +52,7 @@ Architecture & Architecture::operator=(const Architecture &arc)
 
 	id = arc.id;
 	name = arc.name;
+	registers = arc.registers;
 	instructions = arc.instructions;
 
 	for (ehs::Size i = 0; i < instructions.Size(); ++i)
@@ -66,6 +69,44 @@ ehs::UInt_64 Architecture::GetId() const
 ehs::Str_8 Architecture::GetName() const
 {
 	return name;
+}
+
+bool Architecture::HasRegister(const ehs::UInt_64& id) const
+{
+	for (ehs::UInt_64 i = 0; i < registers.Size(); ++i)
+		if (registers[i].GetId() == id)
+			return true;
+
+	return false;
+}
+
+bool Architecture::HasRegister(const ehs::Str_8& name) const
+{
+	return HasRegister(name.Hash_64());
+}
+
+const Register* Architecture::GetRegister(const ehs::UInt_64& id) const
+{
+	for (ehs::UInt_64 i = 0; i < registers.Size(); ++i)
+		if (registers[i].GetId() == id)
+			return &registers[i];
+
+	return nullptr;
+}
+
+const Register* Architecture::GetRegister(const ehs::Str_8& name) const
+{
+	return GetRegister(name.Hash_64());
+}
+
+bool Architecture::AddRegister(Register reg)
+{
+	if (HasRegister(reg.GetId()))
+		return false;
+
+	registers.Push((Register &&)reg);
+
+	return true;
 }
 
 bool Architecture::HasInstruction(const ehs::UInt_64 &id) const

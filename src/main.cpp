@@ -5,19 +5,36 @@
 #include <ehs/io/Console.h>
 #include <ehs/io/File.h>
 
+#include "arctyx/Arctyx.h"
+#include "arctyx/compiler/Compiler.h"
+
 int main()
 {
 	ehs::Initialize("Arctyx", "Alpha", {1, 0, 0});
 	ehs::Log::EnableImmediateMode(true);
 
+	Arctyx::Initialize();
+
+	ehs::File file("../Main.arc", ehs::Mode::READ, ehs::Disposition::OPEN);
+	ehs::Str_8 code = file.ReadStr_8(file.Size());
+	file.Release();
+
+	Compiler arctyxCompiler("x64", "Arctyx");
+	arctyxCompiler.Compile(code);
+
+	/*
 	ehs::Vector<ehs::Str_8> args = ehs::Console::GetArgs_8();
 	if (args.Size() <= 1)
 	{
 		ehs::Console::Write_8(ehs::GetAppName_8() + " " + ehs::GetAppVersionId_8() + " v" + ehs::Str_8::FromNum(ehs::GetAppVersion().major) + "." +
 			ehs::Str_8::FromNum(ehs::GetAppVersion().minor) + "." + ehs::Str_8::FromNum(ehs::GetAppVersion().patch));
 
+		ehs::Uninitialize();
+
 		return 0;
 	}
+
+	Arctyx::Initialize();
 
 	ehs::File codeFile(args[1].RemoveAll("\""), ehs::Mode::READ, ehs::Disposition::OPEN);
 	ehs::Serializer<ehs::UInt_64> code = codeFile.ReadSerializer_64(ehs::Endianness::LE, codeFile.Size());
@@ -62,6 +79,9 @@ int main()
 
 	ehs::File file(args[2].RemoveAll("\""), ehs::Mode::WRITE, ehs::Disposition::CREATE_PERSISTENT);
 	file.WriteSerializer_64(executable.Serialize());
+	*/
+
+	Arctyx::Uninitialize();
 
 	ehs::Uninitialize();
 

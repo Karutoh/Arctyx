@@ -14,7 +14,8 @@ Language::Language(ehs::Str_8 name, const ehs::Version& version)
 
 Language::Language(Language&& lang) noexcept
 	: id(lang.id), name((ehs::Str_8 &&)lang.name), version(lang.version), eol(lang.eol),
-	separators((ehs::Array<ehs::Char_8> &&)lang.separators),
+	separators((ehs::Array<ehs::Char_8> &&)lang.separators), primitives((ehs::Array<Primitive> &&)lang.primitives),
+	keywords((ehs::Array<ehs::Str_8> &&)lang.keywords), operators((ehs::Array<Operator> &&)lang.operators),
 	interpretations((ehs::Array<Interpretation> &&)lang.interpretations)
 {
 	lang.id = 0;
@@ -24,6 +25,7 @@ Language::Language(Language&& lang) noexcept
 
 Language::Language(const Language& lang)
 	: id(lang.id), name(lang.name), version(lang.version), eol(lang.eol), separators(lang.separators),
+	primitives(lang.primitives), keywords(lang.keywords), operators(lang.operators),
 	interpretations(lang.interpretations)
 {
 }
@@ -38,6 +40,9 @@ Language& Language::operator=(Language&& lang) noexcept
 	version = lang.version;
 	eol = lang.eol;
 	separators = (ehs::Array<ehs::Char_8> &&)lang.separators;
+	primitives = (ehs::Array<Primitive> &&)lang.primitives;
+	keywords = (ehs::Array<ehs::Str_8> &&)lang.keywords;
+	operators = (ehs::Array<Operator> &&)lang.operators;
 	interpretations = (ehs::Array<Interpretation> &&)lang.interpretations;
 
 	lang.id = 0;
@@ -57,6 +62,9 @@ Language& Language::operator=(const Language& lang)
 	version = lang.version;
 	eol = lang.eol;
 	separators = lang.separators;
+	primitives = lang.primitives;
+	keywords = lang.keywords;
+	operators = lang.operators;
 	interpretations = lang.interpretations;
 
 	return *this;
@@ -107,6 +115,106 @@ bool Language::AddSeparator(const ehs::Char_8& separator)
 		return false;
 
 	separators.Push(separator);
+
+	return true;
+}
+
+ehs::Array<Primitive> Language::GetPrimitives() const
+{
+	return primitives;
+}
+
+bool Language::HasPrimitive(const ehs::UInt_64 &id) const
+{
+	for (ehs::Size i = 0; i < primitives.Size(); ++i)
+		if (primitives[i].GetId() == id)
+			return true;
+
+	return false;
+}
+
+bool Language::HasPrimitive(const ehs::Str_8 &name) const
+{
+	return HasPrimitive(name.Hash_64());
+}
+
+const Primitive *Language::GetPrimitive(const ehs::UInt_64 &id) const
+{
+	for (ehs::Size i = 0; i < primitives.Size(); ++i)
+		if (primitives[i].GetId() == id)
+			return &primitives[i];
+
+	return nullptr;
+}
+
+const Primitive* Language::GetPrimitive(const ehs::Str_8 &name) const
+{
+	return GetPrimitive(name.Hash_64());
+}
+
+bool Language::AddPrimitive(Primitive primitive)
+{
+	if (HasPrimitive(primitive.GetId()))
+		return false;
+
+	primitives.Push((Primitive &&)primitive);
+
+	return true;
+}
+
+ehs::Array<ehs::Str_8> Language::GetKeywords() const
+{
+	return keywords;
+}
+
+bool Language::HasKeyword(const ehs::Str_8& keyword) const
+{
+	for (ehs::UInt_64 i = 0; i < keywords.Size(); ++i)
+		if (keywords[i] == keyword)
+			return true;
+
+	return false;
+}
+
+bool Language::AddKeyword(const ehs::Str_8& keyword)
+{
+	if (HasKeyword(keyword))
+		return false;
+
+	keywords.Push((ehs::Str_8 &&)keyword);
+
+	return true;
+}
+
+ehs::Array<Operator> Language::GetOperators() const
+{
+	return operators;
+}
+
+bool Language::HasOperator(const ehs::Str_8 &delimeter) const
+{
+	for (ehs::UInt_64 i = 0; i < operators.Size(); ++i)
+		if (operators[i].GetDelimeter() == delimeter)
+			return true;
+
+	return false;
+}
+
+const Operator* Language::GetOperator(const ehs::Str_8 &delimeter) const
+{
+	for (ehs::UInt_64 i = 0; i < operators.Size(); ++i)
+		if (operators[i].GetDelimeter() == delimeter)
+			return &operators[i];
+
+	return nullptr;
+}
+
+bool Language::AddOperator(Operator primitive)
+{
+	if (HasOperator(primitive.GetDelimeter()))
+		return false;
+
+	operators.Push((Operator &&)primitive);
 
 	return true;
 }

@@ -6,6 +6,8 @@
 #include <ehs/Version.h>
 
 #include "Interpretation.h"
+#include "Operator.h"
+#include "Primitive.h"
 
 class EHS_LIB_IO Language
 {
@@ -17,6 +19,9 @@ private:
 	ehs::Version version;
 	ehs::Char_8 eol;
 	ehs::Array<ehs::Char_8> separators;
+	ehs::Array<Primitive> primitives;
+	ehs::Array<ehs::Str_8> keywords;
+	ehs::Array<Operator> operators;
 	ehs::Array<Interpretation> interpretations;
 
 	static ehs::Array<const Language *> languages;
@@ -49,6 +54,33 @@ public:
 	bool HasSeparator(const ehs::Char_8 &separator) const;
 
 	bool AddSeparator(const ehs::Char_8 &separator);
+
+	ehs::Array<Primitive> GetPrimitives() const;
+
+	bool HasPrimitive(const ehs::UInt_64 &id) const;
+
+	bool HasPrimitive(const ehs::Str_8 &name) const;
+
+	const Primitive *GetPrimitive(const ehs::UInt_64 &id) const;
+
+	const Primitive *GetPrimitive(const ehs::Str_8 &name) const;
+
+	bool AddPrimitive(Primitive primitive);
+
+	ehs::Array<ehs::Str_8> GetKeywords() const;
+
+	bool HasKeyword(const ehs::Str_8 &keyword) const;
+
+	bool AddKeyword(const ehs::Str_8 &keyword);
+
+	ehs::Array<Operator> GetOperators() const;
+
+	bool HasOperator(const ehs::Str_8 &delimeter) const;
+
+
+	const Operator *GetOperator(const ehs::Str_8 &delimeter) const;
+
+	bool AddOperator(Operator primitive);
 
 	ehs::Array<Interpretation> GetInterpretations() const;
 

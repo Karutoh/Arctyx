@@ -2,6 +2,7 @@
 
 #include <ehs/Array.h>
 
+#include "Register.h"
 #include "Instruction.h"
 
 class EHS_LIB_IO Architecture
@@ -11,6 +12,7 @@ private:
 
 	ehs::UInt_64 id;
 	ehs::Str_8 name;
+	ehs::Array<Register> registers;
 	ehs::Array<Instruction> instructions;
 
 	static ehs::Array<const Architecture *> architectures;
@@ -31,6 +33,16 @@ public:
 	ehs::UInt_64 GetId() const;
 
 	ehs::Str_8 GetName() const;
+
+	bool HasRegister(const ehs::UInt_64 &id) const;
+
+	bool HasRegister(const ehs::Str_8 &name) const;
+
+	const Register *GetRegister(const ehs::UInt_64 &id) const;
+
+	const Register *GetRegister(const ehs::Str_8 &name) const;
+
+	bool AddRegister(Register reg);
 
 	bool HasInstruction(const ehs::UInt_64 &id) const;
 

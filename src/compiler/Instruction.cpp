@@ -1,57 +1,26 @@
 #include "arctyx/compiler/Instruction.h"
 
-Instruction::~Instruction()
-{
-	delete code;
-}
-
 Instruction::Instruction()
-	: arch(nullptr), id(0), size(0), code(nullptr)
+	: arch(nullptr), id(0), translation(nullptr)
 {
 }
 
-Instruction::Instruction(ehs::Str_8 name, const ehs::UInt_8 &size, ehs::Byte *code)
-	: arch(nullptr), id(name.Hash_64()), name((ehs::Str_8 &&)name), size(size), code(code)
+Instruction::Instruction(ehs::Str_8 name)
+	: arch(nullptr), id(name.Hash_64()), name((ehs::Str_8 &&)name), translation(nullptr)
 {
-}
-
-Instruction::Instruction(ehs::Str_8 name, const ehs::UInt_64 &code)
-	: arch(nullptr), id(name.Hash_64()), name((ehs::Str_8 &&)name), size(sizeof(code)), code(new ehs::Byte[size])
-{
-	*(ehs::UInt_64 *)this->code = code;
-}
-
-Instruction::Instruction(ehs::Str_8 name, const ehs::UInt_32 &code)
-	: arch(nullptr), id(name.Hash_64()), name((ehs::Str_8 &&)name), size(sizeof(code)), code(new ehs::Byte[size])
-{
-	*(ehs::UInt_32 *)this->code = code;
-}
-
-Instruction::Instruction(ehs::Str_8 name, const ehs::UInt_16 &code)
-	: arch(nullptr), id(name.Hash_64()), name((ehs::Str_8 &&)name), size(sizeof(code)), code(new ehs::Byte[size])
-{
-	*(ehs::UInt_16 *)this->code = code;
-}
-
-Instruction::Instruction(ehs::Str_8 name, const ehs::UInt_8 &code)
-	: arch(nullptr), id(name.Hash_64()), name((ehs::Str_8 &&)name), size(sizeof(code)), code(new ehs::Byte[size])
-{
-	*this->code = code;
 }
 
 Instruction::Instruction(Instruction &&ins) noexcept
-	: arch(ins.arch), id(ins.id), name((ehs::Str_8 &&)ins.name), size(ins.size), code(ins.code)
+	: arch(ins.arch), id(ins.id), name((ehs::Str_8 &&)ins.name), translation(ins.translation)
 {
 	ins.arch = nullptr;
 	ins.id = 0;
-	ins.size = 0;
-	ins.code = nullptr;
+	ins.translation = nullptr;
 }
 
 Instruction::Instruction(const Instruction &ins)
-	: arch(nullptr), id(ins.id), name(ins.name), size(ins.size), code(new ehs::Byte[size])
+	: arch(nullptr), id(ins.id), name(ins.name), translation(ins.translation)
 {
-	ehs::Util::Copy(code, ins.code, size);
 }
 
 Instruction &Instruction::operator=(Instruction &&ins) noexcept
@@ -62,13 +31,11 @@ Instruction &Instruction::operator=(Instruction &&ins) noexcept
 	arch = ins.arch;
 	id = ins.id;
 	name = (ehs::Str_8 &&)ins.name;
-	size = ins.size;
-	code = ins.code;
+	translation = ins.translation;
 
 	ins.arch = nullptr;
 	ins.id = 0;
-	ins.size = 0;
-	ins.code = nullptr;
+	ins.translation = nullptr;
 
 	return *this;
 }
@@ -81,10 +48,7 @@ Instruction &Instruction::operator=(const Instruction &ins)
 	arch = nullptr;
 	id = ins.id;
 	name = ins.name;
-	size = ins.size;
-	code = new ehs::Byte[size];
-
-	ehs::Util::Copy(code, ins.code, size);
+	translation = ins.translation;
 
 	return *this;
 }
@@ -104,12 +68,15 @@ ehs::Str_8 Instruction::GetName() const
 	return name;
 }
 
-ehs::UInt_8 Instruction::GetSize() const
+void Instruction::SetTranslation(TranslateIns newTranslation)
 {
-	return size;
+	translation = newTranslation;
 }
 
-ehs::Byte *Instruction::GetCode() const
+ehs::Serializer<ehs::UInt_64> Instruction::Translate(const ehs::Byte* data) const
 {
-	return code;
+	if (!translation)
+		return {};
+
+	return translation(this, data);
 }
