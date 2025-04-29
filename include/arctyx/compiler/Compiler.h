@@ -30,6 +30,8 @@ public:
 	ehs::Array<ehs::Byte> Compile(const ehs::Str_8 &code) const;
 
 private:
+	static bool IsEOL(const ehs::Array<ehs::Char_8> &eols, const ehs::Char_8 *c);
+
 	static bool IsSeparator(const ehs::Array<ehs::Char_8> &separators, const ehs::Char_8 *c);
 
 	static bool IsPrimitive(const ehs::Array<Primitive> &primitives, const ehs::Str_8 &value);
@@ -37,8 +39,6 @@ private:
 	static bool IsKeyword(const ehs::Array<ehs::Str_8> &keywords, const ehs::Str_8 &value);
 
 	static const Operator *IsOperator(const ehs::Array<Operator> &operators, const ehs::Str_8 &value);
-
-	Token ParseValue(const ehs::Array<Primitive> &primitives, const ehs::Array<ehs::Str_8> &keywords, const ehs::Array<Operator> &operators, const ehs::Str_8 &value) const;
 
 	ehs::Vector<Token> Parse(const ehs::Str_8 &code) const;
 };

@@ -3,28 +3,27 @@
 ehs::Array<const Language *> Language::languages;
 
 Language::Language()
-	: id(0), eol('\n')
+	: id(0)
 {
 }
 
 Language::Language(ehs::Str_8 name, const ehs::Version& version)
-	: id(name.Hash_64()), name((ehs::Str_8 &&)name), version(version), eol('\n')
+	: id(name.Hash_64()), name((ehs::Str_8 &&)name), version(version)
 {
 }
 
 Language::Language(Language&& lang) noexcept
-	: id(lang.id), name((ehs::Str_8 &&)lang.name), version(lang.version), eol(lang.eol),
+	: id(lang.id), name((ehs::Str_8 &&)lang.name), version(lang.version), eols((ehs::Array<ehs::Char_8> &&)lang.eols),
 	separators((ehs::Array<ehs::Char_8> &&)lang.separators), primitives((ehs::Array<Primitive> &&)lang.primitives),
 	keywords((ehs::Array<ehs::Str_8> &&)lang.keywords), operators((ehs::Array<Operator> &&)lang.operators),
 	interpretations((ehs::Array<Interpretation> &&)lang.interpretations)
 {
 	lang.id = 0;
 	lang.version = {};
-	lang.eol = '\n';
 }
 
 Language::Language(const Language& lang)
-	: id(lang.id), name(lang.name), version(lang.version), eol(lang.eol), separators(lang.separators),
+	: id(lang.id), name(lang.name), version(lang.version), eols(lang.eols), separators(lang.separators),
 	primitives(lang.primitives), keywords(lang.keywords), operators(lang.operators),
 	interpretations(lang.interpretations)
 {
@@ -38,7 +37,7 @@ Language& Language::operator=(Language&& lang) noexcept
 	id = lang.id;
 	name = (ehs::Str_8 &&)lang.name;
 	version = lang.version;
-	eol = lang.eol;
+	eols = (ehs::Array<ehs::Char_8> &&)lang.eols;
 	separators = (ehs::Array<ehs::Char_8> &&)lang.separators;
 	primitives = (ehs::Array<Primitive> &&)lang.primitives;
 	keywords = (ehs::Array<ehs::Str_8> &&)lang.keywords;
@@ -47,7 +46,6 @@ Language& Language::operator=(Language&& lang) noexcept
 
 	lang.id = 0;
 	lang.version = {};
-	lang.eol = '\n';
 
 	return *this;
 }
@@ -60,7 +58,7 @@ Language& Language::operator=(const Language& lang)
 	id = lang.id;
 	name = lang.name;
 	version = lang.version;
-	eol = lang.eol;
+	eols = lang.eols;
 	separators = lang.separators;
 	primitives = lang.primitives;
 	keywords = lang.keywords;
@@ -85,14 +83,28 @@ ehs::Version Language::GetVersion() const
 	return version;
 }
 
-void Language::SetEOL(const ehs::Char_8& newEOL)
+ehs::Array<ehs::Char_8> Language::GetEOLs() const
 {
-	eol = newEOL;
+	return eols;
 }
 
-ehs::Char_8 Language::GetEOL() const
+bool Language::HasEOL(const ehs::Char_8 &eol) const
 {
-	return eol;
+	for (ehs::UInt_64 i = 0; i < eols.Size(); ++i)
+		if (eols[i] == eol)
+			return true;
+
+	return false;
+}
+
+bool Language::AddEOL(const ehs::Char_8 &eol)
+{
+	if (HasEOL(eol))
+		return false;
+
+	eols.Push(eol);
+
+	return true;
 }
 
 ehs::Array<ehs::Char_8> Language::GetSeparators() const

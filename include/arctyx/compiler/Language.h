@@ -17,7 +17,7 @@ private:
 	ehs::UInt_64 id;
 	ehs::Str_8 name;
 	ehs::Version version;
-	ehs::Char_8 eol;
+	ehs::Array<ehs::Char_8> eols;
 	ehs::Array<ehs::Char_8> separators;
 	ehs::Array<Primitive> primitives;
 	ehs::Array<ehs::Str_8> keywords;
@@ -45,9 +45,11 @@ public:
 
 	ehs::Version GetVersion() const;
 
-	void SetEOL(const ehs::Char_8 &newEOL);
+	ehs::Array<ehs::Char_8> GetEOLs() const;
 
-	ehs::Char_8 GetEOL() const;
+	bool HasEOL(const ehs::Char_8 &eol) const;
+
+	bool AddEOL(const ehs::Char_8 &eol);
 
 	ehs::Array<ehs::Char_8> GetSeparators() const;
 
@@ -76,7 +78,6 @@ public:
 	ehs::Array<Operator> GetOperators() const;
 
 	bool HasOperator(const ehs::Str_8 &delimeter) const;
-
 
 	const Operator *GetOperator(const ehs::Str_8 &delimeter) const;
 

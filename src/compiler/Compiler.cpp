@@ -1,5 +1,8 @@
 #include "arctyx/compiler/Compiler.h"
 
+#include <iterator>
+#include <ehs/io/Console.h>
+
 Compiler::Compiler()
     : architecture(nullptr), language(nullptr)
 {
@@ -65,11 +68,49 @@ Compiler& Compiler::operator=(const Compiler& other)
 
 ehs::Array<ehs::Byte> Compiler::Compile(const ehs::Str_8 &code) const
 {
+    ehs::Console::Write_8("Code:");
+    ehs::Console::Write_8(code);
+
+    ehs::Console::Write_8("Tokens:");
     ehs::Vector<Token> tokens = Parse(code);
+    for (ehs::UInt_64 i = 0; i < tokens.Size(); ++i)
+    {
+        if (tokens[i].GetType() == TokenT::UNKNOWN)
+            ehs::Console::Write_8("UNKNOWN, ", false);
+        else if (tokens[i].GetType() == TokenT::SEPARATOR)
+            ehs::Console::Write_8("SEPARATOR, ", false);
+        else if (tokens[i].GetType() == TokenT::NUMBER)
+            ehs::Console::Write_8("NUMBER, ", false);
+        else if (tokens[i].GetType() == TokenT::STRING)
+            ehs::Console::Write_8("STRING, ", false);
+        else if (tokens[i].GetType() == TokenT::CHARACTER)
+            ehs::Console::Write_8("CHARACTER, ", false);
+        else if (tokens[i].GetType() == TokenT::KEYWORD)
+            ehs::Console::Write_8("KEYWORD, ", false);
+        else if (tokens[i].GetType() == TokenT::TYPE)
+            ehs::Console::Write_8("TYPE, ", false);
+        else if (tokens[i].GetType() == TokenT::IDENTIFIER)
+            ehs::Console::Write_8("IDENTIFIER, ", false);
+        else if (tokens[i].GetType() == TokenT::UNARY_OPERATOR)
+            ehs::Console::Write_8("UNARY_OPERATOR, ", false);
+        else if (tokens[i].GetType() == TokenT::COMPOUND_OPERATOR)
+            ehs::Console::Write_8("COMPOUND_OPERATOR, ", false);
+        else if (tokens[i].GetType() == TokenT::EOL)
+            ehs::Console::Write_8("EOL");
+    }
 
     ehs::Array<ehs::Byte> machineCode;
 
     return machineCode;
+}
+
+bool Compiler::IsEOL(const ehs::Array<ehs::Char_8>& eols, const ehs::Char_8* c)
+{
+    for (ehs::UInt_64 s = 0; s < eols.Size(); ++s)
+        if (*c == eols[s])
+            return true;
+
+    return false;
 }
 
 bool Compiler::IsSeparator(const ehs::Array<ehs::Char_8> &separators, const ehs::Char_8 *c)
@@ -108,33 +149,11 @@ const Operator *Compiler::IsOperator(const ehs::Array<Operator>& operators, cons
     return nullptr;
 }
 
-Token Compiler::ParseValue(const ehs::Array<Primitive> &primitives, const ehs::Array<ehs::Str_8> &keywords, const ehs::Array<Operator> &operators, const ehs::Str_8& value) const
-{
-    if (IsPrimitive(primitives, value))
-        return {TokenT::TYPE, value};
-
-    if (IsKeyword(keywords, value))
-        return {TokenT::KEYWORD, value};
-
-    const Operator *op = IsOperator(operators, value);
-    if (op)
-    {
-        if (op->IsUnary())
-            return {TokenT::UNARY_OPERATOR, value};
-        else
-            return {TokenT::COMPOUND_OPERATOR, value};
-    }
-
-    if (value[0] >= '0' && value[0] <= '9')
-        return {TokenT::VALUE, value};
-
-    return {TokenT::IDENTIFIER, value};
-}
-
 ehs::Vector<Token> Compiler::Parse(const ehs::Str_8 &code) const
 {
     ehs::Vector<Token> tokens;
 
+    const ehs::Array<ehs::Char_8> eols = language->GetEOLs();
     const ehs::Array<ehs::Char_8> separators = language->GetSeparators();
     const ehs::Array<Primitive> primitives = language->GetPrimitives();
     const ehs::Array<ehs::Str_8> keywords = language->GetKeywords();
@@ -142,45 +161,78 @@ ehs::Vector<Token> Compiler::Parse(const ehs::Str_8 &code) const
 
     for (ehs::Char_8 *i = &code[0], *start = i; i < &code[code.Size()]; ++i)
     {
-        if (*i == language->GetEOL())
-        {
-            if (start != i)
-                tokens.Push(ParseValue(primitives, keywords, operators, ehs::Str_8(start, i - start)));
-
-            tokens.Push({TokenT::EOL, {i, 1}});
-
-            start = i + 1;
-
-            continue;
-        }
-
         if (*start == '\"')
         {
-            if (i != start && *i == '\"')
+            if (*i == '\"')
             {
-                tokens.Push({TokenT::VALUE, {start, (ehs::UInt_64)(i - (start - 1))}});
+                ++start;
 
+                tokens.Push({TokenT::STRING, ehs::Str_8(start, i - 1 - start)});
+
+                if (i + 1 < &code[code.Size()])
+                    start = i + 1;
+            }
+        }
+        else if (*start == '\'')
+        {
+            if (*i == '\'')
+            {
+                ++start;
+
+                const ehs::UInt_64 size = i - 1 - start;
+                if (size > 1)
+                {
+                    EHS_LOG(ehs::LogType::ERR, 0, "Characters cannot extend to more than one.");
+
+                    return {};
+                }
+
+                tokens.Push({TokenT::CHARACTER, {start, size}});
+
+                if (i + 1 < &code[code.Size()])
+                    start = i + 1;
+            }
+        }
+        else if (const bool isEOL = IsEOL(eols, i), isSep = IsSeparator(separators, i); *i == ' ' || *i == '\t' || isEOL || isSep)
+        {
+            if ((*start == ' ' || *start == '\t') && i + 1 < &code[code.Size()])
+            {
                 start = i + 1;
 
                 continue;
             }
 
-            continue;
-        }
+            const ehs::Str_8 value(start, i - start);
 
-        if (!IsSeparator(separators, i))
-            continue;
+            if (value.Size())
+            {
+                if (IsPrimitive(primitives, value))
+                    tokens.Push({TokenT::TYPE, value});
+                else if (IsKeyword(keywords, value))
+                    tokens.Push({TokenT::KEYWORD, value});
+                else if (const Operator *op = IsOperator(operators, value); op)
+                {
+                    if (op->IsUnary())
+                        tokens.Push({TokenT::UNARY_OPERATOR, value});
+                    else
+                        tokens.Push({TokenT::COMPOUND_OPERATOR, value});
+                }
+                else if (value[0] >= '0' && value[0] <= '9')
+                    tokens.Push({TokenT::NUMBER, value});
+                else
+                    tokens.Push({TokenT::IDENTIFIER, value});
+            }
 
-        if (i - (start - 1) == 1 && IsSeparator(separators, start))
-        {
+            if (isEOL)
+                tokens.Push({TokenT::EOL, {i, 1}});
+            else if (isSep)
+                tokens.Push({TokenT::SEPARATOR, {i, 1}});
+
             start = i + 1;
-            continue;
         }
-
-        tokens.Push(ParseValue(primitives, keywords, operators, ehs::Str_8(start, i - start)));
-
-        start = i + 1;
     }
+
+    EHS_LOG_SUCCESS();
 
     return tokens;
 }

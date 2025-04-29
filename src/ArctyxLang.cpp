@@ -15,10 +15,10 @@ bool InitializePlugin()
 
     Language arctyx("Arctyx", GetPluginVersion());
 
-    arctyx.AddSeparator(' ');
-    arctyx.AddSeparator('\t');
+    arctyx.AddSeparator(',');
 
-    arctyx.SetEOL('\n');
+    arctyx.AddEOL('\n');
+    arctyx.AddEOL(';');
 
     arctyx.AddPrimitive({"Byte", 1, Signedness::UNSIGNED});
     arctyx.AddPrimitive({"Char_8", 1, Signedness::UNSIGNED});

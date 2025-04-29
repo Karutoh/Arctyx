@@ -5,7 +5,10 @@
 enum class TokenT : ehs::UInt_8
 {
 	UNKNOWN,
-	VALUE,
+	SEPARATOR,
+	NUMBER,
+	STRING,
+	CHARACTER,
 	KEYWORD,
 	TYPE,
 	IDENTIFIER,

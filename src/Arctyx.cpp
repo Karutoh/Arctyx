@@ -79,13 +79,13 @@ void Arctyx::LoadLanguagePlugins()
 
 		if (!initFunc())
 		{
-			ehs::Console::Write_8("Failed to initialize plugin " + pluginName + " v" + pluginVersion.major + "." +
+			ehs::Console::Write_8("Failed to load plugin " + pluginName + " v" + pluginVersion.major + "." +
 				pluginVersion.minor + "." + pluginVersion.patch);
 
 			continue;
 		}
 
-		ehs::Console::Write_8("Successfully initialized plugin " + pluginName + " v" + pluginVersion.major + "." +
+		ehs::Console::Write_8("Successfully loaded plugin " + pluginName + " v" + pluginVersion.major + "." +
 			pluginVersion.minor + "." + pluginVersion.patch);
 
 		plugins.Push((ehs::Open &&)plugin);
@@ -94,8 +94,12 @@ void Arctyx::LoadLanguagePlugins()
 
 void Arctyx::Initialize()
 {
+	ehs::Console::Write_8("Loading plugins...");
+
 	LoadArchitecturePlugins();
 	LoadLanguagePlugins();
+
+	ehs::Console::Write_8("");
 }
 
 void Arctyx::Uninitialize()
@@ -110,6 +114,8 @@ void Arctyx::Uninitialize()
 
 	Language::languages.Clear();
 
+	ehs::Console::Write_8("\nUnloading plugins...");
+
 	for (ehs::UInt_64 i = 0; i < plugins.Size(); ++i)
 	{
 		GetPluginName nameFunc = (GetPluginName)plugins[i].Retrieve("_Z13GetPluginNamev");
@@ -121,11 +127,11 @@ void Arctyx::Uninitialize()
 
 		if (!shutFunc)
 		{
-			ehs::Console::Write_8("Failed to shutdown plugin " + pluginName + " v" + pluginVersion.major + "." +
+			ehs::Console::Write_8("Failed to unload plugin " + pluginName + " v" + pluginVersion.major + "." +
 				pluginVersion.minor + "." + pluginVersion.patch);
 		}
 
-		ehs::Console::Write_8("successfully shutdown plugin " + pluginName + " v" + pluginVersion.major + "." +
+		ehs::Console::Write_8("successfully unloaded plugin " + pluginName + " v" + pluginVersion.major + "." +
 				pluginVersion.minor + "." + pluginVersion.patch);
 	}
 
