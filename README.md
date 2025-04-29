@@ -1,6 +1,9 @@
 # Work In Progress
 Does not currently compile anything, it simply creates an ELF binary with provided machine code.
 
+# Dependencies
+[Event Horizon Suite](https://gitea.eventhorizonstudio.io/SilverMoonStudio/EHS)
+
 # Features
 - Compiler, and Linker Plugins
 - Cross-Platform
