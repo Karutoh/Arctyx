@@ -1,6 +1,5 @@
 #include "arctyx/compiler/Compiler.h"
 
-#include <iterator>
 #include <ehs/io/Console.h>
 
 Compiler::Compiler()
@@ -8,7 +7,7 @@ Compiler::Compiler()
 {
 }
 
-Compiler::Compiler(const ehs::Str_8& arch, const ehs::Str_8& lang)
+Compiler::Compiler(const ehs::Str_8& arch, const ehs::Str_8& lang, ehs::Str_8 entryPoint)
 {
     architecture = Architecture::Get(arch);
     if (!architecture)
@@ -24,18 +23,24 @@ Compiler::Compiler(const ehs::Str_8& arch, const ehs::Str_8& lang)
         return;
     }
 
+    entryPointId = entryPoint.Hash_64();
+    entryPointName = (ehs::Str_8 &&)entryPoint;
+
     EHS_LOG_SUCCESS();
 }
 
 Compiler::Compiler(Compiler&& other) noexcept
-    : architecture(other.architecture), language(other.language), symbols((ehs::Array<Symbol> &&)other.symbols)
+    : architecture(other.architecture), language(other.language), entryPointId(other.entryPointId),
+    entryPointName((ehs::Str_8 &&)other.entryPointName), symbols((ehs::Array<Symbol> &&)other.symbols)
 {
     other.architecture = nullptr;
     other.language = nullptr;
+    other.entryPointId = 0;
 }
 
 Compiler::Compiler(const Compiler& other)
-    : architecture(other.architecture), language(other.language), symbols(other.symbols)
+    : architecture(other.architecture), language(other.language), entryPointId(other.entryPointId),
+    entryPointName(other.entryPointName), symbols(other.symbols)
 {
 }
 
@@ -46,10 +51,13 @@ Compiler& Compiler::operator=(Compiler&& other) noexcept
 
     architecture = other.architecture;
     language = other.language;
+    entryPointId = other.entryPointId;
+    entryPointName = (ehs::Str_8 &&)other.entryPointName;
     symbols = (ehs::Array<Symbol> &&)other.symbols;
 
     other.architecture = nullptr;
     other.language = nullptr;
+    other.entryPointId = 0;
 
     return *this;
 }
@@ -61,24 +69,66 @@ Compiler& Compiler::operator=(const Compiler& other)
 
     architecture = other.architecture;
     language = other.language;
+    entryPointId = other.entryPointId;
+    entryPointName = other.entryPointName;
     symbols = other.symbols;
 
     return *this;
 }
 
-ehs::Array<ehs::Byte> Compiler::Compile(const ehs::Str_8 &code) const
+bool Compiler::HasSymbol(const ehs::UInt_64 &id) const
+{
+    for (ehs::UInt_64 i = 0; i < symbols.Size(); ++i)
+        if (symbols[i].GetId() == id)
+            return true;
+
+    return false;
+}
+
+bool Compiler::HasSymbol(const ehs::Str_8 &name) const
+{
+    return HasSymbol(name.Hash_64());
+}
+
+bool Compiler::AddSymbol(Symbol symbol)
+{
+    if (HasSymbol(symbol.GetId()))
+        return false;
+
+    symbols.Push((Symbol &&)symbol);
+
+    return true;
+}
+
+Symbol *Compiler::GetSymbol(const ehs::UInt_64 &id) const
+{
+    for (ehs::UInt_64 i = 0; i < symbols.Size(); ++i)
+        if (symbols[i].GetId() == id)
+            return &symbols[i];
+
+    return nullptr;
+}
+
+Symbol *Compiler::GetSymbol(const ehs::Str_8 &name) const
+{
+    return GetSymbol(name.Hash_64());
+}
+
+ehs::Vector<ehs::Byte> Compiler::Compile(const ehs::Str_8 &code)
 {
     ehs::Console::Write_8("Code:");
     ehs::Console::Write_8(code);
 
     ehs::Console::Write_8("Tokens:");
-    ehs::Vector<Token> tokens = Parse(code);
+    ehs::Vector<Token> tokens = language->CompileIntoTokens(this, code);
     for (ehs::UInt_64 i = 0; i < tokens.Size(); ++i)
     {
         if (tokens[i].GetType() == TokenT::UNKNOWN)
             ehs::Console::Write_8("UNKNOWN, ", false);
         else if (tokens[i].GetType() == TokenT::SEPARATOR)
             ehs::Console::Write_8("SEPARATOR, ", false);
+        else if (tokens[i].GetType() == TokenT::BOOLEAN)
+            ehs::Console::Write_8("BOOLEAN, ", false);
         else if (tokens[i].GetType() == TokenT::NUMBER)
             ehs::Console::Write_8("NUMBER, ", false);
         else if (tokens[i].GetType() == TokenT::STRING)
@@ -95,144 +145,36 @@ ehs::Array<ehs::Byte> Compiler::Compile(const ehs::Str_8 &code) const
             ehs::Console::Write_8("UNARY_OPERATOR, ", false);
         else if (tokens[i].GetType() == TokenT::COMPOUND_OPERATOR)
             ehs::Console::Write_8("COMPOUND_OPERATOR, ", false);
+        else if (tokens[i].GetType() == TokenT::ENCAPSULATOR)
+            ehs::Console::Write_8("ENCAPSULATOR, ", false);
         else if (tokens[i].GetType() == TokenT::EOL)
             ehs::Console::Write_8("EOL");
     }
 
-    ehs::Array<ehs::Byte> machineCode;
+    ehs::Vector<ehs::Byte> machineCode = language->CompileIntoMachineCode(this, tokens);
 
-    return machineCode;
-}
-
-bool Compiler::IsEOL(const ehs::Array<ehs::Char_8>& eols, const ehs::Char_8* c)
-{
-    for (ehs::UInt_64 s = 0; s < eols.Size(); ++s)
-        if (*c == eols[s])
-            return true;
-
-    return false;
-}
-
-bool Compiler::IsSeparator(const ehs::Array<ehs::Char_8> &separators, const ehs::Char_8 *c)
-{
-    for (ehs::UInt_64 s = 0; s < separators.Size(); ++s)
-        if (*c == separators[s])
-            return true;
-
-    return false;
-}
-
-bool Compiler::IsPrimitive(const ehs::Array<Primitive>& primitives, const ehs::Str_8& value)
-{
-    for (ehs::UInt_64 i = 0; i < primitives.Size(); ++i)
-        if (value == primitives[i].GetName())
-            return true;
-
-    return false;
-}
-
-bool Compiler::IsKeyword(const ehs::Array<ehs::Str_8>& keywords, const ehs::Str_8& value)
-{
-    for (ehs::UInt_64 i = 0; i < keywords.Size(); ++i)
-        if (value == keywords[i])
-            return true;
-
-    return false;
-}
-
-const Operator *Compiler::IsOperator(const ehs::Array<Operator>& operators, const ehs::Str_8& value)
-{
-    for (ehs::UInt_64 i = 0; i < operators.Size(); ++i)
-        if (value == operators[i].GetDelimeter())
-            return &operators[i];
-
-    return nullptr;
-}
-
-ehs::Vector<Token> Compiler::Parse(const ehs::Str_8 &code) const
-{
-    ehs::Vector<Token> tokens;
-
-    const ehs::Array<ehs::Char_8> eols = language->GetEOLs();
-    const ehs::Array<ehs::Char_8> separators = language->GetSeparators();
-    const ehs::Array<Primitive> primitives = language->GetPrimitives();
-    const ehs::Array<ehs::Str_8> keywords = language->GetKeywords();
-    const ehs::Array<Operator> operators = language->GetOperators();
-
-    for (ehs::Char_8 *i = &code[0], *start = i; i < &code[code.Size()]; ++i)
+    ehs::Console::Write_8("\nSymbols:");
+    for (ehs::UInt_64 i = 0; i < symbols.Size(); ++i)
     {
-        if (*start == '\"')
-        {
-            if (*i == '\"')
-            {
-                ++start;
+        if (symbols[i].GetType() == SymbolType::VARIABLE)
+            ehs::Console::Write_8("Variable ", false);
+        else if (symbols[i].GetType() == SymbolType::FUNCTION)
+            ehs::Console::Write_8("Function ", false);
+        else if (symbols[i].GetType() == SymbolType::CLASS)
+            ehs::Console::Write_8("Class ", false);
+        else if (symbols[i].GetType() == SymbolType::MEMBER)
+            ehs::Console::Write_8("Member ", false);
+        else if (symbols[i].GetType() == SymbolType::METHOD)
+            ehs::Console::Write_8("Method ", false);
+        else
+            ehs::Console::Write_8("Unknown ", false);
 
-                tokens.Push({TokenT::STRING, ehs::Str_8(start, i - 1 - start)});
-
-                if (i + 1 < &code[code.Size()])
-                    start = i + 1;
-            }
-        }
-        else if (*start == '\'')
-        {
-            if (*i == '\'')
-            {
-                ++start;
-
-                const ehs::UInt_64 size = i - 1 - start;
-                if (size > 1)
-                {
-                    EHS_LOG(ehs::LogType::ERR, 0, "Characters cannot extend to more than one.");
-
-                    return {};
-                }
-
-                tokens.Push({TokenT::CHARACTER, {start, size}});
-
-                if (i + 1 < &code[code.Size()])
-                    start = i + 1;
-            }
-        }
-        else if (const bool isEOL = IsEOL(eols, i), isSep = IsSeparator(separators, i); *i == ' ' || *i == '\t' || isEOL || isSep)
-        {
-            if ((*start == ' ' || *start == '\t') && i + 1 < &code[code.Size()])
-            {
-                start = i + 1;
-
-                continue;
-            }
-
-            const ehs::Str_8 value(start, i - start);
-
-            if (value.Size())
-            {
-                if (IsPrimitive(primitives, value))
-                    tokens.Push({TokenT::TYPE, value});
-                else if (IsKeyword(keywords, value))
-                    tokens.Push({TokenT::KEYWORD, value});
-                else if (const Operator *op = IsOperator(operators, value); op)
-                {
-                    if (op->IsUnary())
-                        tokens.Push({TokenT::UNARY_OPERATOR, value});
-                    else
-                        tokens.Push({TokenT::COMPOUND_OPERATOR, value});
-                }
-                else if (value[0] >= '0' && value[0] <= '9')
-                    tokens.Push({TokenT::NUMBER, value});
-                else
-                    tokens.Push({TokenT::IDENTIFIER, value});
-            }
-
-            if (isEOL)
-                tokens.Push({TokenT::EOL, {i, 1}});
-            else if (isSep)
-                tokens.Push({TokenT::SEPARATOR, {i, 1}});
-
-            start = i + 1;
-        }
+        ehs::Console::Write_8(symbols[i].GetName());
     }
 
-    EHS_LOG_SUCCESS();
+    Symbol *entryPoint = GetSymbol(entryPointId);
+    if (!entryPoint || entryPoint->GetType() != SymbolType::FUNCTION)
+        ehs::Console::Write_8("\nCompiler Error: Function symbol, \"" + entryPointName + "\", for the entry point was not found!");
 
-    return tokens;
+    return machineCode;
 }

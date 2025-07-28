@@ -6,6 +6,7 @@ enum class TokenT : ehs::UInt_8
 {
 	UNKNOWN,
 	SEPARATOR,
+	BOOLEAN,
 	NUMBER,
 	STRING,
 	CHARACTER,
@@ -14,6 +15,7 @@ enum class TokenT : ehs::UInt_8
 	IDENTIFIER,
 	UNARY_OPERATOR,
 	COMPOUND_OPERATOR,
+	ENCAPSULATOR,
 	EOL
 };
 
@@ -35,6 +37,8 @@ public:
 	Token &operator=(Token &&token) noexcept;
 
 	Token &operator=(const Token &token);
+
+	void SetType(const TokenT &newType);
 
 	TokenT GetType() const;
 

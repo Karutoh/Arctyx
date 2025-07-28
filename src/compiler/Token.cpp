@@ -45,6 +45,11 @@ Token & Token::operator=(const Token &token)
 	return *this;
 }
 
+void Token::SetType(const TokenT& newType)
+{
+	type = newType;
+}
+
 TokenT Token::GetType() const
 {
 	return type;

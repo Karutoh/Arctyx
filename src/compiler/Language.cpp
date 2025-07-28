@@ -3,29 +3,32 @@
 ehs::Array<const Language *> Language::languages;
 
 Language::Language()
-	: id(0)
+	: id(0), compileIntoTokensCb(nullptr), compileIntoMachineCodeCb(nullptr)
 {
 }
 
 Language::Language(ehs::Str_8 name, const ehs::Version& version)
-	: id(name.Hash_64()), name((ehs::Str_8 &&)name), version(version)
+	: id(name.Hash_64()), name((ehs::Str_8 &&)name), version(version), compileIntoTokensCb(nullptr),
+	compileIntoMachineCodeCb(nullptr)
 {
 }
 
 Language::Language(Language&& lang) noexcept
 	: id(lang.id), name((ehs::Str_8 &&)lang.name), version(lang.version), eols((ehs::Array<ehs::Char_8> &&)lang.eols),
-	separators((ehs::Array<ehs::Char_8> &&)lang.separators), primitives((ehs::Array<Primitive> &&)lang.primitives),
-	keywords((ehs::Array<ehs::Str_8> &&)lang.keywords), operators((ehs::Array<Operator> &&)lang.operators),
-	interpretations((ehs::Array<Interpretation> &&)lang.interpretations)
+	primitives((ehs::Array<Primitive> &&)lang.primitives), keywords((ehs::Array<ehs::Str_8> &&)lang.keywords),
+	operators((ehs::Array<Operator> &&)lang.operators), interpretations((ehs::Array<Interpretation> &&)lang.interpretations),
+	compileIntoTokensCb(lang.compileIntoTokensCb), compileIntoMachineCodeCb(lang.compileIntoMachineCodeCb)
 {
 	lang.id = 0;
 	lang.version = {};
+	lang.compileIntoTokensCb = nullptr;
+	lang.compileIntoMachineCodeCb = nullptr;
 }
 
 Language::Language(const Language& lang)
-	: id(lang.id), name(lang.name), version(lang.version), eols(lang.eols), separators(lang.separators),
-	primitives(lang.primitives), keywords(lang.keywords), operators(lang.operators),
-	interpretations(lang.interpretations)
+	: id(lang.id), name(lang.name), version(lang.version), eols(lang.eols), primitives(lang.primitives),
+	keywords(lang.keywords), operators(lang.operators), interpretations(lang.interpretations),
+	compileIntoTokensCb(lang.compileIntoTokensCb), compileIntoMachineCodeCb(lang.compileIntoMachineCodeCb)
 {
 }
 
@@ -38,14 +41,17 @@ Language& Language::operator=(Language&& lang) noexcept
 	name = (ehs::Str_8 &&)lang.name;
 	version = lang.version;
 	eols = (ehs::Array<ehs::Char_8> &&)lang.eols;
-	separators = (ehs::Array<ehs::Char_8> &&)lang.separators;
 	primitives = (ehs::Array<Primitive> &&)lang.primitives;
 	keywords = (ehs::Array<ehs::Str_8> &&)lang.keywords;
 	operators = (ehs::Array<Operator> &&)lang.operators;
 	interpretations = (ehs::Array<Interpretation> &&)lang.interpretations;
+	compileIntoTokensCb = lang.compileIntoTokensCb;
+	compileIntoMachineCodeCb = lang.compileIntoMachineCodeCb;
 
 	lang.id = 0;
 	lang.version = {};
+	lang.compileIntoTokensCb = nullptr;
+	lang.compileIntoMachineCodeCb = nullptr;
 
 	return *this;
 }
@@ -59,11 +65,12 @@ Language& Language::operator=(const Language& lang)
 	name = lang.name;
 	version = lang.version;
 	eols = lang.eols;
-	separators = lang.separators;
 	primitives = lang.primitives;
 	keywords = lang.keywords;
 	operators = lang.operators;
 	interpretations = lang.interpretations;
+	compileIntoTokensCb = lang.compileIntoTokensCb;
+	compileIntoMachineCodeCb = lang.compileIntoMachineCodeCb;
 
 	return *this;
 }
@@ -103,30 +110,6 @@ bool Language::AddEOL(const ehs::Char_8 &eol)
 		return false;
 
 	eols.Push(eol);
-
-	return true;
-}
-
-ehs::Array<ehs::Char_8> Language::GetSeparators() const
-{
-	return separators;
-}
-
-bool Language::HasSeparator(const ehs::Char_8& separator) const
-{
-	for (ehs::Size i = 0; i < separators.Size(); ++i)
-		if (separators[i] == separator)
-			return true;
-
-	return false;
-}
-
-bool Language::AddSeparator(const ehs::Char_8& separator)
-{
-	if (HasSeparator(separator))
-		return false;
-
-	separators.Push(separator);
 
 	return true;
 }
@@ -262,6 +245,44 @@ bool Language::AddInterpretation(Interpretation interpretation)
 	interpretations.Push((Interpretation &&)interpretation);
 
 	return true;
+}
+
+void Language::SetCompileIntoTokensCb(const CompileIntoTokensCb cb)
+{
+	compileIntoTokensCb = cb;
+}
+
+ehs::Vector<Token> Language::CompileIntoTokens(Compiler *compiler, const ehs::Str_8& code) const
+{
+	if (compileIntoTokensCb)
+	{
+		EHS_LOG_SUCCESS();
+
+		return compileIntoTokensCb(compiler, this, code);
+	}
+
+	EHS_LOG(ehs::LogType::ERR, 0, "The " + name + " language is incomplete and does not implement a " + name + " to token compiler.");
+
+	return {};
+}
+
+void Language::SetCompileIntoMachineCodeCb(const CompileIntoMachineCodeCb cb)
+{
+	compileIntoMachineCodeCb = cb;
+}
+
+ehs::Vector<ehs::Byte> Language::CompileIntoMachineCode(Compiler *compiler, const ehs::Vector<Token>& tokens) const
+{
+	if (compileIntoTokensCb)
+	{
+		EHS_LOG_SUCCESS();
+
+		return compileIntoMachineCodeCb(compiler, this, tokens);
+	}
+
+	EHS_LOG(ehs::LogType::ERR, 0, "The " + name + " language is incomplete and does not implement a token to machine code compiler.");
+
+	return {};
 }
 
 bool Language::Has(const ehs::UInt_64& id)

@@ -4,6 +4,7 @@
 #include <ehs/EHS.h>
 #include <ehs/io/Console.h>
 #include <ehs/io/File.h>
+#include <ehs/system/AVX2.h>
 
 #include "arctyx/Arctyx.h"
 #include "arctyx/compiler/Compiler.h"
@@ -19,7 +20,7 @@ int main()
 	ehs::Str_8 code = file.ReadStr_8(file.Size());
 	file.Release();
 
-	Compiler arctyxCompiler("x64", "Arctyx");
+	Compiler arctyxCompiler("x64", "Arctyx", "test");
 	arctyxCompiler.Compile(code);
 
 	/*

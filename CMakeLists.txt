@@ -52,6 +52,12 @@ add_library(Arctyx SHARED
         src/compiler/Register.cpp
         include/arctyx/compiler/Operator.h
         src/compiler/Operator.cpp
+        include/arctyx/compiler/StackItem.h
+        src/compiler/StackItem.cpp
+        include/arctyx/compiler/Stack.h
+        src/compiler/Stack.cpp
+        include/arctyx/compiler/StackParam.h
+        src/compiler/StackParam.cpp
 )
 
 add_library(x64Arch SHARED
@@ -63,6 +69,7 @@ set_target_properties(x64Arch PROPERTIES
 )
 
 add_library(ArctyxLang SHARED
+        include/arctyxLang/ArctyxCompiler.h src/ArctyxCompiler.cpp
         src/ArctyxLang.cpp
 )
 

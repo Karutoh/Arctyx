@@ -9,6 +9,9 @@
 #include "Operator.h"
 #include "Primitive.h"
 
+typedef ehs::Vector<Token> (*CompileIntoTokensCb)(Compiler *compiler, const Language *lang, const ehs::Str_8 &code);
+typedef ehs::Vector<ehs::Byte> (*CompileIntoMachineCodeCb)(Compiler *compiler, const Language *lang, const ehs::Vector<Token> &tokens);
+
 class EHS_LIB_IO Language
 {
 private:
@@ -18,11 +21,12 @@ private:
 	ehs::Str_8 name;
 	ehs::Version version;
 	ehs::Array<ehs::Char_8> eols;
-	ehs::Array<ehs::Char_8> separators;
 	ehs::Array<Primitive> primitives;
 	ehs::Array<ehs::Str_8> keywords;
 	ehs::Array<Operator> operators;
 	ehs::Array<Interpretation> interpretations;
+	CompileIntoTokensCb compileIntoTokensCb;
+	CompileIntoMachineCodeCb compileIntoMachineCodeCb;
 
 	static ehs::Array<const Language *> languages;
 
@@ -50,12 +54,6 @@ public:
 	bool HasEOL(const ehs::Char_8 &eol) const;
 
 	bool AddEOL(const ehs::Char_8 &eol);
-
-	ehs::Array<ehs::Char_8> GetSeparators() const;
-
-	bool HasSeparator(const ehs::Char_8 &separator) const;
-
-	bool AddSeparator(const ehs::Char_8 &separator);
 
 	ehs::Array<Primitive> GetPrimitives() const;
 
@@ -90,6 +88,14 @@ public:
 	const Interpretation *GetInterpretation(const TokenT &type, const ehs::Str_8 &name) const;
 
 	bool AddInterpretation(Interpretation interpretation);
+
+	void SetCompileIntoTokensCb(CompileIntoTokensCb cb);
+
+	ehs::Vector<Token> CompileIntoTokens(Compiler *compiler, const ehs::Str_8 &code) const;
+
+	void SetCompileIntoMachineCodeCb(CompileIntoMachineCodeCb cb);
+
+	ehs::Vector<ehs::Byte> CompileIntoMachineCode(Compiler *compiler, const ehs::Vector<Token> &tokens) const;
 
 	static bool Has(const ehs::UInt_64 &id);
 

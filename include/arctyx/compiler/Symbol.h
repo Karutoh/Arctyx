@@ -20,11 +20,12 @@ private:
 	ehs::UInt_64 id;
 	ehs::Str_8 name;
 	ehs::UInt_64 address;
+	ehs::UInt_64 size;
 
 public:
 	Symbol();
 
-	Symbol(const SymbolType &type, ehs::Str_8 name, const ehs::UInt_64 &address);
+	Symbol(const SymbolType &type, ehs::Str_8 name, const ehs::UInt_64 &address, const ehs::UInt_64 &size);
 
 	Symbol(Symbol &&other) noexcept;
 
@@ -41,4 +42,6 @@ public:
 	ehs::UInt_64 GetId() const;
 
 	ehs::UInt_64 GetAddress() const;
+
+	ehs::UInt_64 GetSize() const;
 };

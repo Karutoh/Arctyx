@@ -20,11 +20,11 @@ typedef bool (*ShutdownPlugin)();
 
 void Arctyx::LoadArchitecturePlugins()
 {
-#if defined(EHS_OS_LINUX)
-	const ehs::Str_8 delimeter = ".so";
-#elif defined(EHS_OS_WINDOWS)
-	const ehs::Str_8 delimeter = ".dll";
-#endif
+	#if defined(EHS_OS_LINUX)
+		const ehs::Str_8 delimeter = ".so";
+	#elif defined(EHS_OS_WINDOWS)
+		const ehs::Str_8 delimeter = ".dll";
+	#endif
 
 	ehs::Array<ehs::Str_8> files = ehs::Directory::GetAllFiles("plugins/architectures");
 	for (ehs::UInt_64 i = 0; i < files.Size(); ++i)

@@ -8,7 +8,7 @@ private:
     ehs::UInt_64 id;
     ehs::Str_8 name;
     ehs::UInt_32 byteDepth;
-    ehs::UInt_64 code;;
+    ehs::UInt_64 code;
 
 public:
     Register();
