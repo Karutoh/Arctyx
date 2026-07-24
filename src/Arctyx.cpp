@@ -131,7 +131,7 @@ void Arctyx::Uninitialize()
 				pluginVersion.minor + "." + pluginVersion.patch);
 		}
 
-		ehs::Console::Write_8("successfully unloaded plugin " + pluginName + " v" + pluginVersion.major + "." +
+		ehs::Console::Write_8("Successfully unloaded plugin " + pluginName + " v" + pluginVersion.major + "." +
 				pluginVersion.minor + "." + pluginVersion.patch);
 	}
 

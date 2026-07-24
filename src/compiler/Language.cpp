@@ -173,10 +173,12 @@ bool Language::HasKeyword(const ehs::Str_8& keyword) const
 
 bool Language::AddKeyword(const ehs::Str_8& keyword)
 {
-	if (HasKeyword(keyword))
+	ehs::Str_8 loweredKey = keyword.GetLower();
+
+	if (HasKeyword(loweredKey))
 		return false;
 
-	keywords.Push((ehs::Str_8 &&)keyword);
+	keywords.Push((ehs::Str_8 &&)loweredKey);
 
 	return true;
 }

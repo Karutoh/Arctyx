@@ -10,7 +10,8 @@ enum class SymbolType
 	FUNCTION,
 	CLASS,
 	MEMBER,
-	METHOD
+	METHOD,
+	CONSTRUCTOR
 };
 
 class Symbol

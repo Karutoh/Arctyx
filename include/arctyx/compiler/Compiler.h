@@ -15,7 +15,7 @@ private:
 	const Language *language;
 	ehs::UInt_64 entryPointId;
 	ehs::Str_8 entryPointName;
-	ehs::Array<Symbol> symbols;
+	ehs::Array<Symbol> globalSymbols;
 
 public:
 	Compiler();
@@ -30,15 +30,15 @@ public:
 
 	Compiler &operator=(const Compiler &other);
 
-	bool HasSymbol(const ehs::UInt_64 &id) const;
+	bool HasSymbol(const SymbolType &type, const ehs::UInt_64 &id) const;
 
-	bool HasSymbol(const ehs::Str_8 &name) const;
+	bool HasSymbol(const SymbolType &type, const ehs::Str_8 &name) const;
 
 	bool AddSymbol(Symbol symbol);
 
-	Symbol *GetSymbol(const ehs::UInt_64 &id) const;
+	Symbol *GetSymbol(const SymbolType &type, const ehs::UInt_64 &id) const;
 
-	Symbol *GetSymbol(const ehs::Str_8 &name) const;
+	Symbol *GetSymbol(const SymbolType &type, const ehs::Str_8 &name) const;
 
 	ehs::Vector<ehs::Byte> Compile(const ehs::Str_8 &code);
 

@@ -29,13 +29,17 @@ public:
 
     ehs::UInt_64 GetOffset() const;
 
-    bool HasItem(const ehs::UInt_64 &id) const;
+	bool HasItem(const ehs::UInt_64 &id) const;
 
-    bool HasItem(const ehs::Str_8 &name) const;
+	bool HasItem(const ehs::Str_8 &name) const;
 
-    bool AddItem(StackItem item);
+    void AddItem(StackItem item);
+
+	bool RemoveItem(const ehs::Str_8 &name);
+
+	bool RemoveItem(const ehs::UInt_64 &id);
 
     StackItem *GetItem(const ehs::UInt_64 &id) const;
 
-    StackItem *GetItem(const ehs::Str_8 &name) const;
+	StackItem *GetItem(const ehs::Str_8 &name) const;
 };

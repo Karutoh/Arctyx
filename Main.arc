@@ -1,28 +1,39 @@
-class Bar
+Namespace ehs
 {
-	public Bool enabled
-
-	Bar(const Bool enabled)
-		: enabled(enabled)
+	Class Bar
 	{
+		Bool enabled
+
+		Bar(const Bool enabled)
+		{
+			this->enabled = enabled
+		}
 	}
-}
 
-UInt_8 Main(const Char_8 *args)
-{
-	Char_8 hello[] = "Hello, fucking world!";
+	Bool IsTrue()
+	{
+		Return True;
+	}
 
-	Bar bar(true);
-	bar.enabled = false;
+	Unt_8 Main(const Char_8 *args)
+	{
+		Char_8 hello[] = "Hello, fucking world!"
 
-	UInt_8 test = 5, a = 2
-	test = test + 25
-	test = test + a
-	++test
-	a++
+		Bar bar(true)
+		bar.enabled = False
 
-	if (test < a)
+		UInt_8 test = 5, a = 2
+		test = test + 25
+		test = test + a
 		++test
+		a++
 
-	return test
+		if (test < a)
+			++test
+
+		Return test
+	}
+
+	Bool a = True
+	Bool b = False
 }

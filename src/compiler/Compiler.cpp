@@ -31,7 +31,7 @@ Compiler::Compiler(const ehs::Str_8& arch, const ehs::Str_8& lang, ehs::Str_8 en
 
 Compiler::Compiler(Compiler&& other) noexcept
     : architecture(other.architecture), language(other.language), entryPointId(other.entryPointId),
-    entryPointName((ehs::Str_8 &&)other.entryPointName), symbols((ehs::Array<Symbol> &&)other.symbols)
+    entryPointName((ehs::Str_8 &&)other.entryPointName), globalSymbols((ehs::Array<Symbol> &&)other.globalSymbols)
 {
     other.architecture = nullptr;
     other.language = nullptr;
@@ -40,7 +40,7 @@ Compiler::Compiler(Compiler&& other) noexcept
 
 Compiler::Compiler(const Compiler& other)
     : architecture(other.architecture), language(other.language), entryPointId(other.entryPointId),
-    entryPointName(other.entryPointName), symbols(other.symbols)
+    entryPointName(other.entryPointName), globalSymbols(other.globalSymbols)
 {
 }
 
@@ -53,7 +53,7 @@ Compiler& Compiler::operator=(Compiler&& other) noexcept
     language = other.language;
     entryPointId = other.entryPointId;
     entryPointName = (ehs::Str_8 &&)other.entryPointName;
-    symbols = (ehs::Array<Symbol> &&)other.symbols;
+    globalSymbols = (ehs::Array<Symbol> &&)other.globalSymbols;
 
     other.architecture = nullptr;
     other.language = nullptr;
@@ -71,47 +71,47 @@ Compiler& Compiler::operator=(const Compiler& other)
     language = other.language;
     entryPointId = other.entryPointId;
     entryPointName = other.entryPointName;
-    symbols = other.symbols;
+    globalSymbols = other.globalSymbols;
 
     return *this;
 }
 
-bool Compiler::HasSymbol(const ehs::UInt_64 &id) const
+bool Compiler::HasSymbol(const SymbolType &type, const ehs::UInt_64 &id) const
 {
-    for (ehs::UInt_64 i = 0; i < symbols.Size(); ++i)
-        if (symbols[i].GetId() == id)
+    for (ehs::UInt_64 i = 0; i < globalSymbols.Size(); ++i)
+        if (globalSymbols[i].GetType() == type && globalSymbols[i].GetId() == id)
             return true;
 
     return false;
 }
 
-bool Compiler::HasSymbol(const ehs::Str_8 &name) const
+bool Compiler::HasSymbol(const SymbolType &type, const ehs::Str_8 &name) const
 {
-    return HasSymbol(name.Hash_64());
+    return HasSymbol(type, name.Hash_64());
 }
 
 bool Compiler::AddSymbol(Symbol symbol)
 {
-    if (HasSymbol(symbol.GetId()))
+    if (HasSymbol(symbol.GetType(), symbol.GetId()))
         return false;
 
-    symbols.Push((Symbol &&)symbol);
+    globalSymbols.Push((Symbol &&)symbol);
 
     return true;
 }
 
-Symbol *Compiler::GetSymbol(const ehs::UInt_64 &id) const
+Symbol *Compiler::GetSymbol(const SymbolType &type, const ehs::UInt_64 &id) const
 {
-    for (ehs::UInt_64 i = 0; i < symbols.Size(); ++i)
-        if (symbols[i].GetId() == id)
-            return &symbols[i];
+    for (ehs::UInt_64 i = 0; i < globalSymbols.Size(); ++i)
+        if (globalSymbols[i].GetType() == type && globalSymbols[i].GetId() == id)
+            return &globalSymbols[i];
 
     return nullptr;
 }
 
-Symbol *Compiler::GetSymbol(const ehs::Str_8 &name) const
+Symbol *Compiler::GetSymbol(const SymbolType &type, const ehs::Str_8 &name) const
 {
-    return GetSymbol(name.Hash_64());
+    return GetSymbol(type, name.Hash_64());
 }
 
 ehs::Vector<ehs::Byte> Compiler::Compile(const ehs::Str_8 &code)
@@ -119,8 +119,9 @@ ehs::Vector<ehs::Byte> Compiler::Compile(const ehs::Str_8 &code)
     ehs::Console::Write_8("Code:");
     ehs::Console::Write_8(code);
 
-    ehs::Console::Write_8("Tokens:");
     ehs::Vector<Token> tokens = language->CompileIntoTokens(this, code);
+
+	ehs::Console::Write_8("\nTokens:");
     for (ehs::UInt_64 i = 0; i < tokens.Size(); ++i)
     {
         if (tokens[i].GetType() == TokenT::UNKNOWN)
@@ -153,27 +154,29 @@ ehs::Vector<ehs::Byte> Compiler::Compile(const ehs::Str_8 &code)
 
     ehs::Vector<ehs::Byte> machineCode = language->CompileIntoMachineCode(this, tokens);
 
-    ehs::Console::Write_8("\nSymbols:");
-    for (ehs::UInt_64 i = 0; i < symbols.Size(); ++i)
+    ehs::Console::Write_8("\n\nSymbols:");
+    for (ehs::UInt_64 i = 0; i < globalSymbols.Size(); ++i)
     {
-        if (symbols[i].GetType() == SymbolType::VARIABLE)
+		if (globalSymbols[i].GetType() == SymbolType::VARIABLE)
             ehs::Console::Write_8("Variable ", false);
-        else if (symbols[i].GetType() == SymbolType::FUNCTION)
+		else if (globalSymbols[i].GetType() == SymbolType::FUNCTION)
             ehs::Console::Write_8("Function ", false);
-        else if (symbols[i].GetType() == SymbolType::CLASS)
+		else if (globalSymbols[i].GetType() == SymbolType::CLASS)
             ehs::Console::Write_8("Class ", false);
-        else if (symbols[i].GetType() == SymbolType::MEMBER)
+		else if (globalSymbols[i].GetType() == SymbolType::MEMBER)
             ehs::Console::Write_8("Member ", false);
-        else if (symbols[i].GetType() == SymbolType::METHOD)
+		else if (globalSymbols[i].GetType() == SymbolType::METHOD)
             ehs::Console::Write_8("Method ", false);
-        else
+		else if (globalSymbols[i].GetType() == SymbolType::CONSTRUCTOR)
+    		ehs::Console::Write_8("Constructor ", false);
+		else
             ehs::Console::Write_8("Unknown ", false);
 
-        ehs::Console::Write_8(symbols[i].GetName());
+        ehs::Console::Write_8(globalSymbols[i].GetName());
     }
 
-    Symbol *entryPoint = GetSymbol(entryPointId);
-    if (!entryPoint || entryPoint->GetType() != SymbolType::FUNCTION)
+    Symbol *entryPoint = GetSymbol(SymbolType::FUNCTION, entryPointId);
+    if (!entryPoint)
         ehs::Console::Write_8("\nCompiler Error: Function symbol, \"" + entryPointName + "\", for the entry point was not found!");
 
     return machineCode;

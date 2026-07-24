@@ -7,14 +7,15 @@ class StackParam
 private:
     const Register *reg;
     ehs::UInt_64 stackOffset;
+	ehs::UInt_8 size;
 	bool pointer;
 
 public:
     StackParam();
 
-    StackParam(const Register *reg, bool pointer);
+    StackParam(const Register *reg, const bool &pointer);
 
-    StackParam(ehs::UInt_64 stackOffset, bool pointer);
+    StackParam(const ehs::UInt_64 &stackOffset, const bool &pointer);
 
 	StackParam(StackParam &&other) noexcept;
 

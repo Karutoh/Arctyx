@@ -9,6 +9,7 @@ private:
     ehs::Str_8 name;
     ehs::UInt_32 byteDepth;
     ehs::UInt_64 code;
+	ehs::UInt_64 data;
 
 public:
     Register();
@@ -38,4 +39,8 @@ public:
     ehs::UInt_8 GetByteDepth() const;
 
     ehs::UInt_64 GetCode() const;
+
+	void SetData(const ehs::UInt_64 &newData);
+
+	ehs::UInt_64 GetData() const;
 };

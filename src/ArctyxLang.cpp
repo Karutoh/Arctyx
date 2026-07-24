@@ -69,6 +69,7 @@ bool InitializePlugin()
     arctyx.AddKeyword("Del");
     arctyx.AddKeyword("DelArr");
     arctyx.AddKeyword("Enum");
+	arctyx.AddKeyword("Namespace");
 
     arctyx.SetCompileIntoTokensCb(CompileIntoTokens);
 
