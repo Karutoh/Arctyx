@@ -10,7 +10,7 @@
 #include "Primitive.h"
 
 typedef ehs::Vector<Token> (*CompileIntoTokensCb)(Compiler *compiler, const Language *lang, const ehs::Str_8 &code);
-typedef ehs::Vector<ehs::Byte> (*CompileIntoMachineCodeCb)(Compiler *compiler, const Language *lang, const ehs::Vector<Token> &tokens);
+typedef ehs::Vector<ehs::Byte> (*CompileIntoMachineCodeCb)(Compiler *compiler, const Language *lang, const Architecture *arch, const ehs::Vector<Token> &tokens);
 
 class EHS_LIB_IO Language
 {

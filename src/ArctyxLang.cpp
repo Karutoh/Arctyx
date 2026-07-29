@@ -61,6 +61,7 @@ bool InitializePlugin()
     arctyx.AddKeyword("Continue");
     arctyx.AddKeyword("Const");
     arctyx.AddKeyword("Class");
+	arctyx.AddKeyword("Struct");
     arctyx.AddKeyword("Prot");
     arctyx.AddKeyword("Priv");
     arctyx.AddKeyword("Pub");

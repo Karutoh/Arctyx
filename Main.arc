@@ -1,39 +1,50 @@
 Namespace ehs
 {
-	Class Bar
+	Namespace test
 	{
-		Bool enabled
+		UInt_64 c = 100
 
-		Bar(const Bool enabled)
+		Class Bar
 		{
-			this->enabled = enabled
+			Bool enabled
+
+			Bar(const Bool enabled)
+			{
+				this->enabled = enabled
+			}
 		}
-	}
 
-	Bool IsTrue()
-	{
-		Return True;
-	}
+		Bool IsTrue()
+		{
+			Return True
+		}
 
-	Unt_8 Main(const Char_8 *args)
-	{
-		Char_8 hello[] = "Hello, fucking world!"
+		Unt_8 Main(const Char_8 *args)
+		{
+			Char_8 hello[] = "Hello, fucking world!"
 
-		Bar bar(true)
-		bar.enabled = False
+			Bar bar(true)
+			bar.enabled = False
 
-		UInt_8 test = 5, a = 2
-		test = test + 25
-		test = test + a
-		++test
-		a++
-
-		if (test < a)
+			UInt_8 test = 5, a = 2
+			test = test + 25
+			test = test + a
 			++test
+			a++
 
-		Return test
-	}
+			if (test < a)
+				++test
 
-	Bool a = True
-	Bool b = False
+			Return test
+		}
+
+		Bool a = True
+		Bool b = False
+
+		Struct Test
+		{
+			Bool a;
+			Bool b;
+		}
+    }
 }

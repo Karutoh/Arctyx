@@ -10,7 +10,8 @@ enum class ScopeType
 	CLASS,
 	METHOD,
 	NAMESPACE,
-	CONSTRUCTOR
+	CONSTRUCTOR,
+	STRUCTURE
 };
 
 class Scope

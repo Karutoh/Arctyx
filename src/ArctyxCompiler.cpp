@@ -364,9 +364,9 @@ void ParseGlobalSymbols(Compiler *compiler, const Language *lang, const ehs::Vec
 				IsFunction({&line[3], line.Size() - 4}))
 			{
 				if (currentScope->IsValid())
-					compiler->AddSymbol({SymbolType::FUNCTION, currentScope->ToStr() + "." + line[1].GetValue(), 0, 0});
+					compiler->AddSymbol({SymbolType::FUNCTION, currentScope->ToStr() + line[1].GetValue(), i});
 				else
-					compiler->AddSymbol({SymbolType::FUNCTION, line[1].GetValue(), 0, 0});
+					compiler->AddSymbol({SymbolType::FUNCTION, line[1].GetValue(), i});
 
 				if (!rootScope.IsValid())
 				{
@@ -380,9 +380,12 @@ void ParseGlobalSymbols(Compiler *compiler, const Language *lang, const ehs::Vec
 			else
 			{
 				if (currentScope->IsValid())
-					compiler->AddSymbol({SymbolType::VARIABLE, currentScope->ToStr() + "." + line[1].GetValue(), 0, 0});
+				{
+					if (currentScope->GetType() != ScopeType::FUNCTION && currentScope->GetType() != ScopeType::METHOD && currentScope->GetType() != ScopeType::CONSTRUCTOR)
+						compiler->AddSymbol({SymbolType::VARIABLE, currentScope->ToStr() + line[1].GetValue(), i});
+				}
 				else
-					compiler->AddSymbol({SymbolType::VARIABLE, line[1].GetValue(), 0, 0});
+					compiler->AddSymbol({SymbolType::VARIABLE, line[1].GetValue(), i});
 			}
 		}
 		else if (line[line.End() - 1].GetType() == TokenT::KEYWORD && line[line.End()].GetType() == TokenT::IDENTIFIER)
@@ -400,7 +403,10 @@ void ParseGlobalSymbols(Compiler *compiler, const Language *lang, const ehs::Vec
 			}
 			else if (line[0].GetValue().GetLower() == "class")
 			{
-				compiler->AddSymbol({SymbolType::CLASS, line[1].GetValue(), 0, 0});
+				if (currentScope->IsValid())
+					compiler->AddSymbol({SymbolType::CLASS, currentScope->ToStr() + line[1].GetValue(), i});
+				else
+					compiler->AddSymbol({SymbolType::CLASS, line[1].GetValue(), i});
 
 				if (!rootScope.IsValid())
 				{
@@ -411,13 +417,29 @@ void ParseGlobalSymbols(Compiler *compiler, const Language *lang, const ehs::Vec
 					currentScope = currentScope->AddChild(line[1].GetValue(), ScopeType::CLASS);
 				}
 			}
+			else if (line[0].GetValue().GetLower() == "struct")
+			{
+				if (currentScope->IsValid())
+					compiler->AddSymbol({SymbolType::STRUCTURE, currentScope->ToStr() + line[1].GetValue(), i});
+				else
+					compiler->AddSymbol({SymbolType::STRUCTURE, line[1].GetValue(), i});
+
+				if (!rootScope.IsValid())
+				{
+					rootScope = Scope(line[1].GetValue(), ScopeType::STRUCTURE);
+				}
+				else
+				{
+					currentScope = currentScope->AddChild(line[1].GetValue(), ScopeType::STRUCTURE);
+				}
+			}
 		}
 		else if (currentScope->GetType() == ScopeType::CLASS && line[0].GetType() == TokenT::IDENTIFIER && IsFunction({&line[1], line.Size() - 1}))
 		{
 			if (currentScope->IsValid())
-				compiler->AddSymbol({SymbolType::CONSTRUCTOR, currentScope->ToStr() + "." + line[0].GetValue(), 0, 0});
+				compiler->AddSymbol({SymbolType::CONSTRUCTOR, currentScope->ToStr() + line[0].GetValue(), i});
 			else
-				compiler->AddSymbol({SymbolType::CONSTRUCTOR, line[0].GetValue(), 0, 0});
+				compiler->AddSymbol({SymbolType::CONSTRUCTOR, line[0].GetValue(), i});
 
 			if (!rootScope.IsValid())
 			{
@@ -431,13 +453,73 @@ void ParseGlobalSymbols(Compiler *compiler, const Language *lang, const ehs::Vec
 	}
 }
 
-ehs::Vector<ehs::Byte> CompileIntoMachineCode(Compiler *compiler, const Language *lang, const ehs::Vector<Token> &tokens)
+void CompileGlobalSymbol(Compiler *compiler, const Language *lang, const Architecture *arch, Symbol *symbol, const ehs::Vector<ehs::Array<Token>> &lines)
+{
+	static ehs::Byte zero[] = {0, 0, 0, 0, 0, 0, 0, 0};
+	ehs::Vector<ehs::Byte> machineCode;
+
+	if (symbol->GetType() == SymbolType::VARIABLE)
+	{
+		Section *dataSect = compiler->GetSection(".data");
+
+		ehs::Array<Token> line = lines[symbol->GetLine()];
+
+		const Primitive *primitive = lang->GetPrimitive(line[0].GetValue());
+		if (primitive)
+		{
+			if (line.Size() == 4)
+			{
+				ehs::UInt_8 byteDepth = primitive->GetByteDepth();
+				ehs::UInt_8 padding = (byteDepth - (dataSect->Size() % byteDepth)) % byteDepth;
+				if (padding)
+					dataSect->Push(zero, padding);
+
+				symbol->SetAddress(dataSect->Size());
+				symbol->SetSize(primitive->GetByteDepth());
+
+				ehs::Str_8 value = line[3].GetValue();
+
+				if (value.IsNum())
+				{
+					ehs::UInt_64 data = value.ToDecimal<ehs::UInt_64>();
+
+					dataSect->Push((ehs::Byte *)&data, byteDepth);
+				}
+				else if (value.GetLower() == "true")
+					dataSect->Push(1);
+				else if (value.GetLower() == "false")
+					dataSect->Push(0);
+				else if (value[0] == '\"' && value[value.Size() - 1] == '\"')
+				{
+					dataSect->Push((ehs::Byte *)&value[1], value.Size() - 2);
+					dataSect->Push(0);
+				}
+			}
+			else
+			{
+
+			}
+		}
+	}
+}
+
+ehs::Vector<ehs::Byte> CompileIntoMachineCode(Compiler *compiler, const Language *lang, const Architecture *arch, const ehs::Vector<Token> &tokens)
 {
     ehs::Vector<Stack> stacks(1, 5);
 
-    const ehs::Vector<ehs::Array<Token>> lines = SplitLines(tokens);
+	const ehs::Vector<ehs::Array<Token>> lines = SplitLines(tokens);
 
 	ParseGlobalSymbols(compiler, lang, lines);
+
+	const ehs::Array<Symbol> *symbols = compiler->GetSymbols();
+	compiler->AddSection({".data", 8});
+	compiler->AddSection({".class_meta", 8});
+	compiler->AddSection({".text", 16});
+
+	for (ehs::UInt_64 i = 0; i < symbols->Size(); ++i)
+	{
+		CompileGlobalSymbol(compiler, lang, arch, &(*symbols)[i], lines);
+	}
 
 	/*
     for (ehs::UInt_64 i = 0; i < lines.Size(); ++i)

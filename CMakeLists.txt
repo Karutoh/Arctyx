@@ -60,6 +60,8 @@ add_library(Arctyx SHARED
         src/compiler/StackParam.cpp
 		include/arctyx/compiler/Scope.h
 		src/compiler/Scope.cpp
+		include/arctyx/compiler/Section.h
+		src/compiler/Section.cpp
 )
 
 add_library(x64Arch SHARED

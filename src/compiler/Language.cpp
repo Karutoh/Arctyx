@@ -1,5 +1,7 @@
 #include "arctyx/compiler/Language.h"
 
+#include "arctyx/compiler/Compiler.h"
+
 ehs::Array<const Language *> Language::languages;
 
 Language::Language()
@@ -279,7 +281,7 @@ ehs::Vector<ehs::Byte> Language::CompileIntoMachineCode(Compiler *compiler, cons
 	{
 		EHS_LOG_SUCCESS();
 
-		return compileIntoMachineCodeCb(compiler, this, tokens);
+		return compileIntoMachineCodeCb(compiler, this, compiler->GetArchitecture(), tokens);
 	}
 
 	EHS_LOG(ehs::LogType::ERR, 0, "The " + name + " language is incomplete and does not implement a token to machine code compiler.");

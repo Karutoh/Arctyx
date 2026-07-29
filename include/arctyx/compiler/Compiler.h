@@ -5,6 +5,7 @@
 
 #include "Architecture.h"
 #include "Language.h"
+#include "Section.h"
 #include "Stack.h"
 #include "Symbol.h"
 
@@ -16,6 +17,7 @@ private:
 	ehs::UInt_64 entryPointId;
 	ehs::Str_8 entryPointName;
 	ehs::Array<Symbol> globalSymbols;
+	ehs::Array<Section> sections;
 
 public:
 	Compiler();
@@ -30,6 +32,10 @@ public:
 
 	Compiler &operator=(const Compiler &other);
 
+	const Architecture *GetArchitecture() const;
+
+	const Language *GetLanguage() const;
+
 	bool HasSymbol(const SymbolType &type, const ehs::UInt_64 &id) const;
 
 	bool HasSymbol(const SymbolType &type, const ehs::Str_8 &name) const;
@@ -40,32 +46,18 @@ public:
 
 	Symbol *GetSymbol(const SymbolType &type, const ehs::Str_8 &name) const;
 
+	const ehs::Array<Symbol> *GetSymbols() const;
+
+	bool HasSection(const ehs::UInt_64 &id) const;
+
+	bool HasSection(const ehs::Str_8 &name) const;
+
+	bool AddSection(Section section);
+
+	Section *GetSection(const ehs::UInt_64 &id) const;
+
+	Section *GetSection(const ehs::Str_8 &name) const;
+
 	ehs::Vector<ehs::Byte> Compile(const ehs::Str_8 &code);
 
-private:
-	static bool IsNumber(const ehs::Char_8 *c);
-
-	static bool IsOperator(const ehs::Char_8 *c);
-
-	static bool IsAlphabet(const ehs::Char_8 *c);
-
-	static bool IsAlphaNumeric(const ehs::Char_8 *c);
-
-	static bool IsPrimitive(const ehs::Array<Primitive> &primitives, const ehs::Str_8 &value);
-
-	static bool IsKeyword(const ehs::Array<ehs::Str_8> &keywords, const ehs::Str_8 &value);
-
-	static bool IsEncapsulator(const ehs::Char_8 *c);
-
-	static bool IsEOL(const ehs::Array<ehs::Char_8> &eols, const ehs::Char_8 *c);
-
-	static void ParseNumber(ehs::Vector<Token> &tokens, const ehs::Array<ehs::Char_8> &eols, ehs::Char_8 **start, ehs::Char_8 **i);
-
-	static void ParseOperator(ehs::Vector<Token> &tokens, const ehs::Array<ehs::Char_8> &eols, ehs::Char_8 **start, ehs::Char_8 **i);
-
-	static void ParseText(ehs::Vector<Token> &tokens, const ehs::Array<ehs::Char_8> &eols,
-		const ehs::Array<Primitive> &primitives, const ehs::Array<ehs::Str_8> &keywords, ehs::Char_8 **start,
-		ehs::Char_8 **i);
-
-	ehs::Vector<Token> ParseIntoTokens(const ehs::Str_8 &code) const;
 };

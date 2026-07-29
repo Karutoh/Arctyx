@@ -163,12 +163,15 @@ Scope* Scope::GetParent() const
 
 ehs::Str_8 Scope::ToStr() const
 {
-	ehs::Str_8 result = name;
-
-	const Scope *next = parent;
+	ehs::Str_8 result;
+	const Scope *next = this;
 	while (next)
 	{
-		result = next->name + "." + result;
+		if (next->GetType() == ScopeType::NAMESPACE)
+			result = next->name + "::" + result;
+		else
+			result = next->name + "." + result;
+
 		next = next->parent;
 	}
 
