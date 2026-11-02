@@ -14,6 +14,8 @@ int main()
 	ehs::Initialize("Arctyx", "Alpha", {1, 0, 0});
 	ehs::Log::EnableImmediateMode(true);
 
+	ehs::CPU::GetTSC_Freq();
+
 	Arctyx::Initialize();
 
 	ehs::File file("../Main.arc", ehs::Mode::READ, ehs::Disposition::OPEN);

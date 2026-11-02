@@ -322,6 +322,24 @@ bool IsFunction(const ehs::Array<Token>& line)
     return false;
 }
 
+bool IsStart(const ehs::Array<Token> &line)
+{
+	for (ehs::UInt_64 i = 0; i < line.Size(); ++i)
+		if (line[i].GetType() == TokenT::ENCAPSULATOR && line[i].GetValue() == "{")
+			return true;
+
+	return false;
+}
+
+bool IsEnd(const ehs::Array<Token> &line)
+{
+	for (ehs::UInt_64 i = 0; i < line.Size(); ++i)
+		if (line[i].GetType() == TokenT::ENCAPSULATOR && line[i].GetValue() == "}")
+			return true;
+
+	return false;
+}
+
 void ParseGlobalSymbols(Compiler *compiler, const Language *lang, const ehs::Vector<ehs::Array<Token>> &lines)
 {
 	ehs::UInt_64 encapsulators = 0;
@@ -453,10 +471,11 @@ void ParseGlobalSymbols(Compiler *compiler, const Language *lang, const ehs::Vec
 	}
 }
 
-void CompileGlobalSymbol(Compiler *compiler, const Language *lang, const Architecture *arch, Symbol *symbol, const ehs::Vector<ehs::Array<Token>> &lines)
+void CompileGlobalSymbol(Compiler *compiler, const Language *lang, const Architecture *arch, const ehs::Array<Symbol> *symbols, const ehs::UInt_64 &index, const ehs::Vector<ehs::Array<Token>> &lines)
 {
 	static ehs::Byte zero[] = {0, 0, 0, 0, 0, 0, 0, 0};
 	ehs::Vector<ehs::Byte> machineCode;
+	Symbol *symbol = &(*symbols)[index];
 
 	if (symbol->GetType() == SymbolType::VARIABLE)
 	{
@@ -501,6 +520,35 @@ void CompileGlobalSymbol(Compiler *compiler, const Language *lang, const Archite
 			}
 		}
 	}
+	else if (symbol->GetType() == SymbolType::CLASS)
+	{
+		Section *classMeta = compiler->GetSection(".class_meta");
+
+		ehs::Array<Token> line = lines[symbol->GetLine()];
+		ehs::UInt_64 classId = symbol->GetId();
+		ehs::Str_8 className = symbol->GetName();
+		ehs::Str_8 versionName = symbol->GetName();
+		ehs::UInt_64 version = 0;
+		for (ehs::UInt_64 i = index + 1; i < symbols->Size(); ++i)
+		{
+			if ((*symbols)[i].GetName().Contains(className))
+				versionName += (*symbols)[i].GetName();
+			else
+				break;
+		}
+
+		version = versionName.Hash_64();
+
+		classMeta->Push((ehs::Byte *)&classId, sizeof(classId));
+		//classMeta->Push((ehs::Byte *)&classNameSize, sizeof(classNameSize));
+		classMeta->Push((ehs::Byte*)&className[0], className.Size());
+
+		ehs::UInt_8 padding = classMeta->Size() % classMeta->GetAlignment();
+		if (padding)
+			classMeta->Push(zero, padding);
+
+		classMeta->Push((ehs::Byte *)&version, sizeof(version));
+	}
 }
 
 ehs::Vector<ehs::Byte> CompileIntoMachineCode(Compiler *compiler, const Language *lang, const Architecture *arch, const ehs::Vector<Token> &tokens)
@@ -513,12 +561,13 @@ ehs::Vector<ehs::Byte> CompileIntoMachineCode(Compiler *compiler, const Language
 
 	const ehs::Array<Symbol> *symbols = compiler->GetSymbols();
 	compiler->AddSection({".data", 8});
+	compiler->AddSection({".class_names", 8});
 	compiler->AddSection({".class_meta", 8});
 	compiler->AddSection({".text", 16});
 
 	for (ehs::UInt_64 i = 0; i < symbols->Size(); ++i)
 	{
-		CompileGlobalSymbol(compiler, lang, arch, &(*symbols)[i], lines);
+		CompileGlobalSymbol(compiler, lang, arch, symbols, i, lines);
 	}
 
 	/*
